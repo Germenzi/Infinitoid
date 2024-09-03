@@ -10,7 +10,7 @@ const CONTROLLING_BALL_STATE : StringName = &"CONTROLLING_BALL_STATE"
 @export_range(2.0, 200.0)
 var initial_ball_radius : float = 15.0
 
-@export_range(10.0, 1_000.0)
+@export_range(10.0, 10_000.0)
 var initial_ball_speed : float = 200.0
 
 @export_subgroup("Draw")
@@ -35,6 +35,23 @@ var platform_height : float = 100.0
 @export_range(1.0, 10.0)
 var platform_draw_width : float = 2.0
 
+@export_category("Block")
+@export
+var block_size : Vector2 = Vector2(100.0, 20.0)
+
+@export_range(0.0, 100.0)
+var block_rows_gap : float = 4.0
+
+@export_range(0.0, 100.0)
+var blocks_columns_gap : float = 4.0
+
+@export_subgroup("Draw")
+@export_range(1.0, 10.0)
+var block_draw_width : float = 2.0
+
+@export
+var block_color : Color = Color.RED
+
 @export
 var platform_color : Color = Color.GREEN
 
@@ -49,6 +66,10 @@ var ball_velocity : Vector2
 var ball_radius : float
 var ball_position : Vector2
 
+var blocks_columns : int
+var blocks : Array[Rect2] = []
+var blocks_spawn_count : int
+
 
 func _enter_tree() -> void:
 	ball_velocity = Vector2.RIGHT * initial_ball_speed
@@ -58,3 +79,6 @@ func _enter_tree() -> void:
 	platform_rect = Rect2(Vector2.ZERO, initial_platform_size)
 	
 	playing_area_rect = Rect2(Vector2.ZERO, get_tree().root.size)
+	
+	blocks_columns = playing_area_rect.size.x / (block_size.x + blocks_columns_gap)
+	blocks_spawn_count = 1
