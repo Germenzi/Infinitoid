@@ -37,7 +37,7 @@ static func ccd_circle_box(circle_begin:Vector2, circle_end:Vector2, circle_radi
 		var point : Variant = Geometry2D.segment_intersects_segment(seg_begin, seg_end, circle_begin, circle_end)
 		if point == null: continue
 		
-		var time : float = (point-circle_begin).length() / circle_segment_length
+		var time : float = ((point as Vector2)-circle_begin).length() / circle_segment_length
 		if time < intersection_time:
 			intersection_time = time
 			rect_collision_side = (SIDE_TOP+i)%4

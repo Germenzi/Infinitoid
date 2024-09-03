@@ -13,7 +13,7 @@ func go_state(p_state:StringName) -> Error:
 		return ERR_DOES_NOT_EXIST
 	
 	state = p_state
-	_state_changed_handlers[state].call()
+	(_state_changed_handlers[state] as Callable).call()
 	return OK
 
 
