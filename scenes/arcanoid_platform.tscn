@@ -1,0 +1,33 @@
+[gd_scene load_steps=2 format=3 uid="uid://bcoi08lnxku5o"]
+
+[sub_resource type="GDScript" id="GDScript_t0bd6"]
+resource_name = "main"
+script/source = "@tool
+extends Node2D
+
+@export_range(10.0, 500.0)
+var length : float = 100.0 :
+	set(v):
+		length = v
+		queue_redraw()
+	get:
+		return length
+
+@export_range(1.0, 20.0)
+var draw_width : float = 3.0 :
+	set(v):
+		draw_width = v
+		queue_redraw()
+	get:
+		return draw_width
+
+@export
+var color : Color = Color.RED
+
+
+func _draw() -> void:
+	draw_line(Vector2(-length/2.0, draw_width/2.0), Vector2(length/2.0, draw_width/2.0), color, draw_width, true)
+"
+
+[node name="ArcanoidPlatform" type="Node2D"]
+script = SubResource("GDScript_t0bd6")

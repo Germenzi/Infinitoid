@@ -1,0 +1,182 @@
+[gd_scene load_steps=4 format=3 uid="uid://bixm1xmwh4h83"]
+
+[ext_resource type="PackedScene" uid="uid://cmcjmel71eu8h" path="res://scenes/arcanoid_ball.tscn" id="1_dfsqf"]
+[ext_resource type="PackedScene" uid="uid://bcoi08lnxku5o" path="res://scenes/arcanoid_platform.tscn" id="2_fesk6"]
+
+[sub_resource type="GDScript" id="GDScript_ypwq7"]
+resource_name = "game_controller"
+script/source = "extends Node
+
+@export_range(10.0, 1_000.0)
+var initial_platform_speed : float = 100.0
+
+@export_range(10.0, 1_000.0)
+var initial_ball_speed : float = 50.0
+
+
+const GAME_STARTING_STATE : StringName = &\"GAME_STARTING_STATE\"
+const LAUNCHING_BALL_STATE : StringName = &\"LAUNCHING_BALL_STATE\"
+const CONTROLLING_BALL_STATE : StringName = &\"CONTROLLING_BALL_STATE\"
+
+var _state_machine : StateMachine
+var _platform_speed : float
+var _playing_area_rect : Rect2
+var _ball_velocity : Vector2 
+
+func _ready() -> void:
+	_playing_area_rect = Rect2(Vector2.ZERO, get_tree().root.size)
+	
+	_state_machine = StateMachine.new()
+	_state_machine.handle_state(GAME_STARTING_STATE, _on_state_game_starting)
+	_state_machine.handle_state(LAUNCHING_BALL_STATE, _on_state_launching_ball)
+	_state_machine.handle_state(CONTROLLING_BALL_STATE, _on_state_controlling_ball)
+	
+	_state_machine.state = GAME_STARTING_STATE
+	
+	_platform_speed = initial_platform_speed
+	_ball_velocity = Vector2.RIGHT*initial_ball_speed
+
+
+func _on_state_game_starting() -> void:
+	const PLATFORM_GAP : float = 100.0
+	
+	%Platform.position = Vector2(get_tree().root.size.x / 2, get_tree().root.size.y-PLATFORM_GAP)
+	_place_ball_to_launch_position()
+
+
+func _on_state_launching_ball() -> void:
+	_place_ball_to_launch_position()
+
+
+func _on_state_controlling_ball() -> void:
+	pass
+
+
+func _process(delta: float) -> void:
+	match _state_machine.state:
+		GAME_STARTING_STATE:
+			_process_game_starting(delta)
+		LAUNCHING_BALL_STATE:
+			_process_launching_ball(delta)
+		CONTROLLING_BALL_STATE:
+			_process_controlling_ball(delta)
+
+
+func _process_game_starting(delta:float) -> void:
+	pass
+
+
+func _process_launching_ball(delta:float) -> void:
+	var ball_relative_position : Vector2 = %Ball.position - %Platform.position
+	_handle_platform_movement(delta)
+	%Ball.position = %Platform.position + ball_relative_position
+	
+	if Input.is_action_just_pressed(\"platform_launch_ball\"):
+		var launch_direction : Vector2 = (%Ball.position - %Platform.position).normalized()
+		_ball_velocity = launch_direction*_ball_velocity.length()
+		_state_machine.go_state(CONTROLLING_BALL_STATE)
+
+
+func _process_controlling_ball(delta:float) -> void:
+	const PLATFORM_HEIGHT : float = 20.0
+	_handle_platform_movement(delta)
+	
+	var ball_collision_rectangles : Array[Rect2] = []
+	ball_collision_rectangles.append(_playing_area_rect.grow(-2*%Ball.radius))
+	
+	var platform_rect : Rect2 = \\
+		Rect2(%Platform.position-Vector2(%Platform.length/2.0, 0.0), Vector2(%Platform.length, PLATFORM_HEIGHT))
+	
+	var frametime : float = 0.0
+	var ball_position : Vector2 = %Ball.position
+	while frametime < 1.0:
+		var earliest_collision : Array = []
+		var collision_with_platform : bool = false
+		
+		for rect:Rect2 in ball_collision_rectangles:
+			var ccd_res : Array = ArcanoidGeometry.ccd_circle_box(
+				ball_position+_ball_velocity*frametime*delta, 
+				ball_position+_ball_velocity*delta,
+				%Ball.radius,
+				rect)
+			
+			if not ccd_res[0]: continue
+			
+			if 0.0 < ccd_res[1] and ccd_res[1] < (1.0-frametime):
+				if earliest_collision.is_empty() or ccd_res[1] < earliest_collision[1]:
+					earliest_collision = ccd_res
+		
+		var platform_ccd_collision : Array = ArcanoidGeometry.ccd_circle_box(
+			ball_position+_ball_velocity*frametime*delta,
+			ball_position+_ball_velocity*delta,
+			%Ball.radius,
+			platform_rect
+		)
+		
+		if 0.0 < platform_ccd_collision[1] and platform_ccd_collision[1] < (1.0-frametime):
+			if earliest_collision.is_empty() or platform_ccd_collision[1] < earliest_collision[1]:
+				earliest_collision = platform_ccd_collision
+				collision_with_platform = true
+		
+		if earliest_collision.is_empty():
+			ball_position += _ball_velocity*delta*(1.0-frametime)
+			break
+		
+		ball_position += _ball_velocity*delta*earliest_collision[1]
+		frametime += earliest_collision[1]
+		if collision_with_platform:
+			_ball_velocity = (%Ball.position-%Platform.position).normalized() * _ball_velocity.length()
+		elif (earliest_collision[2] == SIDE_TOP or earliest_collision[2] == SIDE_BOTTOM):
+			_ball_velocity.y *= -1
+		else:
+			_ball_velocity.x *= -1
+	
+	%Ball.position = ball_position
+
+
+func _place_ball_to_launch_position() -> void:
+	const BALL_PLATFORM_GAP : float = 3.0
+	
+	%Ball.position = %Platform.position + Vector2((%Platform.length-%Ball.radius)*randf_range(-0.5, 0.5), -%Ball.radius-BALL_PLATFORM_GAP)
+
+
+func _handle_platform_movement(delta:float) -> void:
+	var platform_speed_input : float = Input.get_axis(\"platform_left\", \"platform_right\")
+	
+	%Platform.position.x += _platform_speed*delta*platform_speed_input
+	if (%Platform.position.x + %Platform.length/2.0) > _playing_area_rect.end.x:
+		%Platform.position.x = _playing_area_rect.end.x-%Platform.length/2.0
+	elif (%Platform.position.x - %Platform.length/2.0) < _playing_area_rect.position.x:
+		%Platform.position.x = _playing_area_rect.position.x+%Platform.length/2.0
+
+
+func _on_start_button_pressed() -> void:
+	%StartButton.hide()
+	_state_machine.go_state(LAUNCHING_BALL_STATE)
+"
+
+[node name="ArcanoidGame" type="Node"]
+
+[node name="Ball" parent="." instance=ExtResource("1_dfsqf")]
+unique_name_in_owner = true
+position = Vector2(241, 572)
+
+[node name="Platform" parent="." instance=ExtResource("2_fesk6")]
+unique_name_in_owner = true
+position = Vector2(242, 642)
+
+[node name="GameController" type="Node" parent="."]
+script = SubResource("GDScript_ypwq7")
+initial_platform_speed = 300.0
+initial_ball_speed = 400.0
+
+[node name="StartButton" type="Button" parent="."]
+unique_name_in_owner = true
+offset_left = 94.0
+offset_top = 260.0
+offset_right = 408.0
+offset_bottom = 369.0
+focus_mode = 0
+text = "START"
+
+[connection signal="pressed" from="StartButton" to="GameController" method="_on_start_button_pressed"]
