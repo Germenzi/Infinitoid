@@ -12,6 +12,9 @@ var speed_factor : float = 1.05
 @export_range(1, 10000)
 var maximum_health : int = 3
 
+@export
+var playing_area_size : Vector2 = Vector2(800, 500)
+
 @export_category("Ball")
 @export_range(2.0, 200.0)
 var initial_ball_radius : float = 15.0
@@ -73,8 +76,6 @@ var block_color : Color = Color.RED
 @export
 var platform_color : Color = Color.GREEN
 
-var playing_area_rect : Rect2 
-
 var state_machine : StateMachine = StateMachine.new()
 
 var platform_speed : float
@@ -98,9 +99,7 @@ func _enter_tree() -> void:
 	platform_speed = initial_platform_speed
 	platform_rect = Rect2(Vector2.ZERO, initial_platform_size)
 	
-	playing_area_rect = Rect2(Vector2.ZERO, get_tree().root.content_scale_size)
-	
-	blocks_columns = playing_area_rect.size.x / (block_size.x + blocks_columns_gap)
+	blocks_columns = playing_area_size.x / (block_size.x + blocks_columns_gap)
 	blocks_spawn_count = initial_block_spawn_amount
 	
 	health = maximum_health

@@ -55,19 +55,23 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+alignment = 2
 script = SubResource("GDScript_whi16")
 
 [node name="Name" type="Label" parent="."]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 20)
 layout_mode = 2
+size_flags_vertical = 8
 text = "Ability name"
 horizontal_alignment = 1
 vertical_alignment = 1
+autowrap_mode = 3
 
 [node name="Icon" type="TextureRect" parent="."]
 unique_name_in_owner = true
 layout_mode = 2
-size_flags_vertical = 3
+size_flags_vertical = 8
 theme = ExtResource("1_i1g2y")
 texture = ExtResource("2_2janw")
 stretch_mode = 5
@@ -86,16 +90,3 @@ offset_right = 20.0
 grow_horizontal = 2
 grow_vertical = 0
 horizontal_alignment = 1
-
-[node name="SelectedMarker" type="ColorRect" parent="."]
-unique_name_in_owner = true
-visible = false
-custom_minimum_size = Vector2(0, 5)
-layout_mode = 2
-color = Color(0, 1, 0, 1)
-
-[node name="SelectionMarker" type="ColorRect" parent="."]
-unique_name_in_owner = true
-visible = false
-custom_minimum_size = Vector2(0, 5)
-layout_mode = 2
