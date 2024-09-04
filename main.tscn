@@ -1,3 +1,31 @@
-[gd_scene format=3 uid="uid://b1xl420g0lc32"]
+[gd_scene load_steps=3 format=3 uid="uid://b1xl420g0lc32"]
+
+[ext_resource type="PackedScene" uid="uid://cuuhm46xdebyh" path="res://scenes/main_menu_ui.tscn" id="1_l2h6o"]
+
+[sub_resource type="GDScript" id="GDScript_o8j6b"]
+resource_name = "main"
+script/source = "extends Node
+
+const GAME_SCENE : PackedScene = preload(\"res://scenes/arcanoid_game.tscn\")
+
+
+func _on_main_menu_ui_play_button_pressed() -> void:
+	get_tree().change_scene_to_packed(GAME_SCENE)
+
+
+func _on_main_menu_ui_quit_game_button_pressed() -> void:
+	get_tree().quit()
+
+
+func _on_main_menu_ui_settings_button_pressed() -> void:
+	pass # Replace with function body.
+"
 
 [node name="Main" type="Node"]
+script = SubResource("GDScript_o8j6b")
+
+[node name="MainMenuUI" parent="." instance=ExtResource("1_l2h6o")]
+
+[connection signal="play_button_pressed" from="MainMenuUI" to="." method="_on_main_menu_ui_play_button_pressed"]
+[connection signal="quit_game_button_pressed" from="MainMenuUI" to="." method="_on_main_menu_ui_quit_game_button_pressed"]
+[connection signal="settings_button_pressed" from="MainMenuUI" to="." method="_on_main_menu_ui_settings_button_pressed"]

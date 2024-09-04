@@ -1,6 +1,7 @@
-[gd_scene load_steps=7 format=3 uid="uid://bixm1xmwh4h83"]
+[gd_scene load_steps=8 format=3 uid="uid://bixm1xmwh4h83"]
 
-[ext_resource type="Script" path="res://scenes/GameState.gd" id="3_6rb05"]
+[ext_resource type="Theme" uid="uid://dmce53ilrrlem" path="res://main-theme.tres" id="2_665qb"]
+[ext_resource type="Script" path="res://GameState.gd" id="3_6rb05"]
 
 [sub_resource type="GDScript" id="GDScript_vuba5"]
 resource_name = "drawer"
@@ -186,18 +187,6 @@ func _process_controlling_ball(delta:float) -> void:
 					_game_state.ball_velocity.x *= -1
 				_game_state.score += 1
 				banned_rect_side = []
-	
-	
-	for rect:Rect2 in _game_state.blocks:
-		if rect.end.y > _game_state.blocks_deadline_height:
-			_game_state.blocks = []
-			for i:int in _game_state.initial_block_rows:
-				_spawn_blocks_layer()
-			_game_state.health -= 1
-			_game_state.state_machine.go_state(GameState.LAUNCHING_BALL_STATE)
-			if _game_state.health <= 0:
-				get_tree().reload_current_scene()
-			break
 
 
 func _place_ball_to_launch_position() -> void:
@@ -221,7 +210,10 @@ func _handle_platform_movement(delta:float) -> void:
 func _spawn_blocks_layer() -> void:
 	for i:int in len(_game_state.blocks):
 		_game_state.blocks[i].position.y += _game_state.block_size.y + _game_state.block_rows_gap
-	
+		if _game_state.blocks[i].end.y > _game_state.blocks_deadline_height:
+			_on_blocks_reached_deadline()
+			return
+
 	var spawned_columns : Array[int] = []
 	var spawn_count : int = min(_game_state.blocks_spawn_count, _game_state.blocks_columns)
 	var x_offset : float = (_game_state.playing_area_rect.size.x - \\
@@ -252,7 +244,22 @@ func _on_ball_falled() -> void:
 	_game_state.health -= 1
 	
 	if _game_state.health <= 0:
-		get_tree().reload_current_scene()
+		_on_health_expired()
+
+
+func _on_blocks_reached_deadline() -> void:
+	_game_state.blocks = []
+	for i:int in _game_state.initial_block_rows:
+		_spawn_blocks_layer()
+	_game_state.health -= 1
+	if _game_state.health <= 0:
+		_on_health_expired()
+	else:
+		_game_state.state_machine.go_state(GameState.LAUNCHING_BALL_STATE)
+
+
+func _on_health_expired() -> void:
+	get_tree().reload_current_scene()
 
 
 func _on_start_button_pressed() -> void:
@@ -320,8 +327,18 @@ top_row_gap = 30.0
 [node name="GUI" type="CanvasLayer" parent="."]
 layer = 3
 
-[node name="StartButton" type="Button" parent="GUI"]
+[node name="Control" type="Control" parent="GUI"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("2_665qb")
+
+[node name="StartButton" type="Button" parent="GUI/Control"]
 unique_name_in_owner = true
+layout_mode = 0
 offset_left = 94.0
 offset_top = 260.0
 offset_right = 408.0
@@ -329,12 +346,14 @@ offset_bottom = 369.0
 focus_mode = 0
 text = "START"
 
-[node name="SpeedLabel" type="Label" parent="GUI"]
+[node name="SpeedLabel" type="Label" parent="GUI/Control"]
+layout_mode = 0
 offset_right = 95.0
 offset_bottom = 39.0
 script = SubResource("GDScript_0skvr")
 
-[node name="HealthLabel" type="Label" parent="GUI"]
+[node name="HealthLabel" type="Label" parent="GUI/Control"]
+layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
@@ -343,7 +362,8 @@ offset_bottom = 23.0
 grow_horizontal = 0
 script = SubResource("GDScript_fgexy")
 
-[node name="ScoreLabel" type="Label" parent="GUI"]
+[node name="ScoreLabel" type="Label" parent="GUI/Control"]
+layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
@@ -353,4 +373,4 @@ offset_bottom = 23.0
 grow_horizontal = 2
 script = SubResource("GDScript_4yrex")
 
-[connection signal="pressed" from="GUI/StartButton" to="GameController" method="_on_start_button_pressed"]
+[connection signal="pressed" from="GUI/Control/StartButton" to="GameController" method="_on_start_button_pressed"]
