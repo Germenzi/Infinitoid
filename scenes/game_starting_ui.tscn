@@ -1,0 +1,50 @@
+[gd_scene load_steps=3 format=3 uid="uid://dj4cqaqhhkqus"]
+
+[ext_resource type="Theme" uid="uid://dmce53ilrrlem" path="res://main-theme.tres" id="1_ak752"]
+
+[sub_resource type="GDScript" id="GDScript_4f068"]
+resource_name = "main"
+script/source = "extends Control
+
+signal start_button_pressed
+
+
+func _on_start_button_pressed() -> void:
+	start_button_pressed.emit()
+"
+
+[node name="GameStartingUI" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("1_ak752")
+script = SubResource("GDScript_4f068")
+
+[node name="ColorRect" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.784314)
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+alignment = 1
+
+[node name="StartButton" type="Button" parent="VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 50
+text = "   Start   "
+
+[connection signal="pressed" from="VBoxContainer/StartButton" to="." method="_on_start_button_pressed"]

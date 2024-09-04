@@ -1,7 +1,8 @@
-[gd_scene load_steps=8 format=3 uid="uid://bixm1xmwh4h83"]
+[gd_scene load_steps=9 format=3 uid="uid://bixm1xmwh4h83"]
 
 [ext_resource type="Theme" uid="uid://dmce53ilrrlem" path="res://main-theme.tres" id="2_665qb"]
 [ext_resource type="Script" path="res://GameState.gd" id="3_6rb05"]
+[ext_resource type="PackedScene" uid="uid://dj4cqaqhhkqus" path="res://scenes/game_starting_ui.tscn" id="3_ricfi"]
 
 [sub_resource type="GDScript" id="GDScript_vuba5"]
 resource_name = "drawer"
@@ -104,6 +105,9 @@ func _process_controlling_ball(delta:float) -> void:
 	var playing_area_limiter_rect : Rect2 = _game_state.playing_area_rect.grow(-_game_state.ball_radius*2)
 	var platform_rect : Rect2 = _game_state.platform_rect
 	
+	var old_ball_position : Vector2 = _game_state.ball_position
+	var old_ball_velocity : Vector2 = _game_state.ball_velocity
+	
 	var frametime : float = 0.0
 	var banned_rects_sides := ArcanoidGeometry.RectGroupBannedSides.new()
 	while true:
@@ -168,7 +172,12 @@ func _process_controlling_ball(delta:float) -> void:
 					_game_state.ball_velocity.x *= -1
 				_game_state.score += 1
 				banned_rects_sides = ArcanoidGeometry.RectGroupBannedSides.new()
-
+	
+	# hardcoded bugfix, when ball super rarely just ignore walls
+	if not _game_state.playing_area_rect.has_point(_game_state.ball_position):
+		_game_state.ball_position = old_ball_position - old_ball_velocity*delta*1e-3
+		_game_state.ball_velocity = old_ball_velocity.rotated(randf_range(-1e-3, 1e-3))
+		print(\"TRUTEN\")
 
 func _place_ball_to_launch_position() -> void:
 	const BALL_PLATFORM_GAP : float = 3.0
@@ -243,8 +252,8 @@ func _on_health_expired() -> void:
 	get_tree().reload_current_scene()
 
 
-func _on_start_button_pressed() -> void:
-	(%StartButton as Button).hide()
+func _on_game_starging_ui_start_button_pressed() -> void:
+	(%GameStartingUI as Control).hide()
 	_game_state.state_machine.go_state(GameState.LAUNCHING_BALL_STATE)
 "
 
@@ -292,7 +301,6 @@ script = SubResource("GDScript_ypwq7")
 [node name="GameState" type="Node" parent="."]
 unique_name_in_owner = true
 script = ExtResource("3_6rb05")
-speed_factor = 1.01
 initial_ball_radius = 5.0
 initial_ball_speed = 500.0
 initial_platform_size = Vector2(80, 10)
@@ -302,7 +310,6 @@ block_size = Vector2(50, 20)
 block_rows_gap = 2.0
 blocks_columns_gap = 2.0
 initial_block_spawn_amount = 5
-initial_block_rows = 15
 top_row_gap = 30.0
 
 [node name="GUI" type="CanvasLayer" parent="."]
@@ -316,16 +323,6 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 theme = ExtResource("2_665qb")
-
-[node name="StartButton" type="Button" parent="GUI/Control"]
-unique_name_in_owner = true
-layout_mode = 0
-offset_left = 94.0
-offset_top = 260.0
-offset_right = 408.0
-offset_bottom = 369.0
-focus_mode = 0
-text = "START"
 
 [node name="SpeedLabel" type="Label" parent="GUI/Control"]
 layout_mode = 0
@@ -354,4 +351,8 @@ offset_bottom = 23.0
 grow_horizontal = 2
 script = SubResource("GDScript_4yrex")
 
-[connection signal="pressed" from="GUI/Control/StartButton" to="GameController" method="_on_start_button_pressed"]
+[node name="GameStartingUI" parent="GUI/Control" instance=ExtResource("3_ricfi")]
+unique_name_in_owner = true
+layout_mode = 1
+
+[connection signal="start_button_pressed" from="GUI/Control/GameStartingUI" to="GameController" method="_on_game_starging_ui_start_button_pressed"]
