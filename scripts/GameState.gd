@@ -6,6 +6,7 @@ const GAME_STARTING_STATE : StringName = &"GAME_STARTING_STATE"
 const LAUNCHING_BALL_STATE : StringName = &"LAUNCHING_BALL_STATE"
 const CONTROLLING_BALL_STATE : StringName = &"CONTROLLING_BALL_STATE"
 const WAITING_FOR_DAMAGE_STATE : StringName = &"WAITING_FOR_DAMAGE_STATE"
+const GAME_OVER_STATE : StringName = &"GAME_OVER_STATE"
 
 @export_range(1.0, 1.5)
 var speed_factor : float = 1.05
