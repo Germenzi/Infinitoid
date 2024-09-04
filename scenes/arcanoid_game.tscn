@@ -1,4 +1,4 @@
-[gd_scene load_steps=4 format=3 uid="uid://bixm1xmwh4h83"]
+[gd_scene load_steps=5 format=3 uid="uid://bixm1xmwh4h83"]
 
 [ext_resource type="Script" path="res://scenes/GameState.gd" id="3_6rb05"]
 
@@ -226,11 +226,24 @@ func _spawn_blocks_layer() -> void:
 
 func _on_ball_platform_collision() -> void:
 	_spawn_blocks_layer()
+	_game_state.ball_velocity *= _game_state.speed_factor
+	_game_state.platform_speed *= _game_state.speed_factor
 
 
 func _on_start_button_pressed() -> void:
 	(%StartButton as Button).hide()
 	_game_state.state_machine.go_state(GameState.LAUNCHING_BALL_STATE)
+"
+
+[sub_resource type="GDScript" id="GDScript_0skvr"]
+resource_name = "speed_label"
+script/source = "extends Label
+
+@onready
+var _game_state : GameState = %GameState
+
+func _process(delta: float) -> void:
+	text = \"Ball speed: %.3f\" % _game_state.ball_velocity.length()
 "
 
 [node name="ArcanoidGame" type="Node"]
@@ -240,15 +253,6 @@ script = SubResource("GDScript_vuba5")
 
 [node name="GameController" type="Node" parent="."]
 script = SubResource("GDScript_ypwq7")
-
-[node name="StartButton" type="Button" parent="."]
-unique_name_in_owner = true
-offset_left = 94.0
-offset_top = 260.0
-offset_right = 408.0
-offset_bottom = 369.0
-focus_mode = 0
-text = "START"
 
 [node name="GameState" type="Node" parent="."]
 unique_name_in_owner = true
@@ -263,4 +267,22 @@ block_rows_gap = 2.0
 blocks_columns_gap = 2.0
 initial_block_spawn_amount = 3
 
-[connection signal="pressed" from="StartButton" to="GameController" method="_on_start_button_pressed"]
+[node name="GUI" type="CanvasLayer" parent="."]
+layer = 3
+
+[node name="StartButton" type="Button" parent="GUI"]
+unique_name_in_owner = true
+offset_left = 94.0
+offset_top = 260.0
+offset_right = 408.0
+offset_bottom = 369.0
+focus_mode = 0
+text = "START"
+
+[node name="SpeedLabel" type="Label" parent="GUI"]
+unique_name_in_owner = true
+offset_right = 95.0
+offset_bottom = 39.0
+script = SubResource("GDScript_0skvr")
+
+[connection signal="pressed" from="GUI/StartButton" to="GameController" method="_on_start_button_pressed"]

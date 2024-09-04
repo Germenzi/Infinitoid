@@ -6,6 +6,9 @@ const GAME_STARTING_STATE : StringName = &"GAME_STARTING_STATE"
 const LAUNCHING_BALL_STATE : StringName = &"LAUNCHING_BALL_STATE"
 const CONTROLLING_BALL_STATE : StringName = &"CONTROLLING_BALL_STATE"
 
+@export_range(1.0, 1.5)
+var speed_factor : float = 1.05
+
 @export_category("Ball")
 @export_range(2.0, 200.0)
 var initial_ball_radius : float = 15.0
