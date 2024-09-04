@@ -1,4 +1,4 @@
-[gd_scene load_steps=5 format=3 uid="uid://bixm1xmwh4h83"]
+[gd_scene load_steps=7 format=3 uid="uid://bixm1xmwh4h83"]
 
 [ext_resource type="Script" path="res://scenes/GameState.gd" id="3_6rb05"]
 
@@ -54,7 +54,8 @@ func _on_state_game_starting() -> void:
 		_game_state.playing_area_rect.end.y-_game_state.platform_height-_game_state.platform_rect.size.y)
 	
 	_place_ball_to_launch_position()
-	_spawn_blocks_layer()
+	for i:int in _game_state.initial_block_rows:
+		_spawn_blocks_layer()
 
 
 func _on_state_launching_ball() -> void:
@@ -159,7 +160,7 @@ func _process_controlling_ball(delta:float) -> void:
 		match collision_type:
 			BallCollisionTypes.BORDER:
 				if earliest_collision[2] == SIDE_BOTTOM:
-					_game_state.state_machine.go_state(GameState.LAUNCHING_BALL_STATE)
+					_on_ball_falled()
 					return
 				
 				if (earliest_collision[2] == SIDE_TOP or earliest_collision[2] == SIDE_BOTTOM):
@@ -179,6 +180,7 @@ func _process_controlling_ball(delta:float) -> void:
 					_game_state.ball_velocity.y *= -1
 				else:
 					_game_state.ball_velocity.x *= -1
+				_game_state.score += 1
 				banned_rect_side = []
 		
 
@@ -217,7 +219,7 @@ func _spawn_blocks_layer() -> void:
 		var new_block : Rect2 = Rect2(
 			_game_state.playing_area_rect.position + \\
 				Vector2(_game_state.block_size.x+_game_state.blocks_columns_gap, 0.0)*column + \\
-				Vector2(x_offset, 0.0),
+				Vector2(x_offset, _game_state.top_row_gap),
 			_game_state.block_size
 		)
 		
@@ -228,6 +230,14 @@ func _on_ball_platform_collision() -> void:
 	_spawn_blocks_layer()
 	_game_state.ball_velocity *= _game_state.speed_factor
 	_game_state.platform_speed *= _game_state.speed_factor
+
+
+func _on_ball_falled() -> void:
+	_game_state.state_machine.go_state(GameState.LAUNCHING_BALL_STATE)
+	_game_state.health -= 1
+	
+	if _game_state.health == 0:
+		get_tree().reload_current_scene()
 
 
 func _on_start_button_pressed() -> void:
@@ -246,6 +256,28 @@ func _process(delta: float) -> void:
 	text = \"Ball speed: %.3f\" % _game_state.ball_velocity.length()
 "
 
+[sub_resource type="GDScript" id="GDScript_fgexy"]
+resource_name = "health_label"
+script/source = "extends Label
+
+@onready
+var _game_state : GameState = %GameState
+
+func _process(delta: float) -> void:
+	text = \"Health: %d/%d\" % [_game_state.health, _game_state.maximum_health]
+"
+
+[sub_resource type="GDScript" id="GDScript_4yrex"]
+resource_name = "score_label"
+script/source = "extends Label
+
+@onready
+var _game_state : GameState = %GameState
+
+func _process(delta: float) -> void:
+	text = \"Score: %d\" % _game_state.score
+"
+
 [node name="ArcanoidGame" type="Node"]
 
 [node name="Drawer" type="Node2D" parent="."]
@@ -257,6 +289,7 @@ script = SubResource("GDScript_ypwq7")
 [node name="GameState" type="Node" parent="."]
 unique_name_in_owner = true
 script = ExtResource("3_6rb05")
+speed_factor = 1.01
 initial_ball_radius = 5.0
 initial_ball_speed = 500.0
 initial_platform_size = Vector2(80, 10)
@@ -265,7 +298,8 @@ platform_height = 10.0
 block_size = Vector2(50, 20)
 block_rows_gap = 2.0
 blocks_columns_gap = 2.0
-initial_block_spawn_amount = 3
+initial_block_spawn_amount = 5
+top_row_gap = 30.0
 
 [node name="GUI" type="CanvasLayer" parent="."]
 layer = 3
@@ -280,9 +314,27 @@ focus_mode = 0
 text = "START"
 
 [node name="SpeedLabel" type="Label" parent="GUI"]
-unique_name_in_owner = true
 offset_right = 95.0
 offset_bottom = 39.0
 script = SubResource("GDScript_0skvr")
+
+[node name="HealthLabel" type="Label" parent="GUI"]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -40.0
+offset_bottom = 23.0
+grow_horizontal = 0
+script = SubResource("GDScript_fgexy")
+
+[node name="ScoreLabel" type="Label" parent="GUI"]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -20.0
+offset_right = 20.0
+offset_bottom = 23.0
+grow_horizontal = 2
+script = SubResource("GDScript_4yrex")
 
 [connection signal="pressed" from="GUI/StartButton" to="GameController" method="_on_start_button_pressed"]
