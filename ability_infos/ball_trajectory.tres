@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="AbilityInfo" load_steps=3 format=3 uid="uid://cke05n6l4lfdx"]
+
+[ext_resource type="Script" path="res://scripts/AbilityInfo.gd" id="1_2ddut"]
+[ext_resource type="Texture2D" uid="uid://c3tquqsp3rh14" path="res://icon.svg" id="1_2qujk"]
+
+[resource]
+script = ExtResource("1_2ddut")
+ability_name = "Show ball trajectory"
+ability_texture = ExtResource("1_2qujk")
+ability_type = 1

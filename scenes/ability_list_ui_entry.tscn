@@ -1,0 +1,101 @@
+[gd_scene load_steps=4 format=3 uid="uid://4dsx0ran0jti"]
+
+[ext_resource type="Theme" uid="uid://dmce53ilrrlem" path="res://main-theme.tres" id="1_i1g2y"]
+[ext_resource type="Texture2D" uid="uid://c3tquqsp3rh14" path="res://icon.svg" id="2_2janw"]
+
+[sub_resource type="GDScript" id="GDScript_whi16"]
+resource_name = "main"
+script/source = "extends AbilityListEntry
+
+var _selected : bool = false
+var _selecting : bool = false
+
+func _do_set_ability_name(p_ability_name:String) -> void:
+	(%Name as Label).text = p_ability_name
+
+
+func _do_set_ability_number(p_number:int) -> void:
+	(%Number as Label).text = \"%s\" % p_number
+
+
+func _do_set_ability_texture(p_texture:Texture) -> void:
+	(%Icon as TextureRect).texture = p_texture
+
+
+# virtual
+func _do_set_mark_as_selecting(mark:bool) -> void:
+	if mark:
+		if not _selected:
+			(%Number as CanvasItem).self_modulate = Color.AQUAMARINE
+			(%Name as CanvasItem).self_modulate = Color.AQUAMARINE
+	elif not _selected:
+		(%Number as CanvasItem).self_modulate = Color.WHITE
+		(%Name as CanvasItem).self_modulate = Color.WHITE
+	
+	_selecting = mark
+
+# virtual
+func _do_set_mark_as_selected(mark:bool) -> void:
+	if mark:
+		(%Number as CanvasItem).self_modulate = Color.GREEN
+		(%Name as CanvasItem).self_modulate = Color.GREEN
+	elif _selecting:
+		(%Number as CanvasItem).self_modulate = Color.AQUAMARINE
+		(%Name as CanvasItem).self_modulate = Color.AQUAMARINE
+	else:
+		(%Number as CanvasItem).self_modulate = Color.WHITE
+		(%Name as CanvasItem).self_modulate = Color.WHITE
+	
+	_selected = mark
+"
+
+[node name="AbilityListUIEntry" type="VBoxContainer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = SubResource("GDScript_whi16")
+
+[node name="Name" type="Label" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Ability name"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Icon" type="TextureRect" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+theme = ExtResource("1_i1g2y")
+texture = ExtResource("2_2janw")
+stretch_mode = 5
+
+[node name="Number" type="Label" parent="Icon"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -20.0
+offset_top = -19.0
+offset_right = 20.0
+grow_horizontal = 2
+grow_vertical = 0
+horizontal_alignment = 1
+
+[node name="SelectedMarker" type="ColorRect" parent="."]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(0, 5)
+layout_mode = 2
+color = Color(0, 1, 0, 1)
+
+[node name="SelectionMarker" type="ColorRect" parent="."]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(0, 5)
+layout_mode = 2

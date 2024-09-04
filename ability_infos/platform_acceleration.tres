@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="AbilityInfo" load_steps=3 format=3 uid="uid://dg03wwapw0blv"]
+
+[ext_resource type="Texture2D" uid="uid://c3tquqsp3rh14" path="res://icon.svg" id="1_0ytor"]
+[ext_resource type="Script" path="res://scripts/AbilityInfo.gd" id="1_51xe3"]
+
+[resource]
+script = ExtResource("1_51xe3")
+ability_name = "Platform accelerating"
+ability_texture = ExtResource("1_0ytor")
+ability_type = 2

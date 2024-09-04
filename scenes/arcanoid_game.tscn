@@ -1,7 +1,7 @@
 [gd_scene load_steps=14 format=3 uid="uid://bixm1xmwh4h83"]
 
 [ext_resource type="Theme" uid="uid://dmce53ilrrlem" path="res://main-theme.tres" id="2_665qb"]
-[ext_resource type="Script" path="res://GameState.gd" id="3_6rb05"]
+[ext_resource type="Script" path="res://scripts/GameState.gd" id="3_6rb05"]
 [ext_resource type="PackedScene" uid="uid://dj4cqaqhhkqus" path="res://scenes/game_starting_ui.tscn" id="3_ricfi"]
 
 [sub_resource type="GDScript" id="GDScript_vuba5"]
@@ -46,8 +46,7 @@ enum BallCollisionTypes {
 	BLOCK
 }
 
-@onready
-var chosen_ability : Ability = $BallTrajectroryAbility#$MagnetismAbility#$PlatformExtensionAbility#$PlatformAccelerationAbility
+var chosen_ability : Ability
 
 func _ready() -> void:
 	_game_state.state_machine.handle_state(GameState.GAME_STARTING_STATE, _on_state_game_starting)
@@ -186,9 +185,19 @@ func _process_controlling_ball(delta:float) -> void:
 				banned_rects_sides = ArcanoidGeometry.RectGroupBannedSides.new()
 	
 	# hardcoded bugfix, when ball super rarely just ignore walls
-	if not _game_state.playing_area_rect.has_point(_game_state.ball_position):
-		_game_state.ball_position = old_ball_position - old_ball_velocity*delta
-		_game_state.ball_velocity = old_ball_velocity.rotated(randf_range(-1e-1, 1e-1))
+	if not _game_state.playing_area_rect.grow(-_game_state.ball_radius).has_point(_game_state.ball_position):
+		if _game_state.ball_position.x <= _game_state.playing_area_rect.position.x:
+			_game_state.ball_position.x = _game_state.playing_area_rect.position.x + _game_state.ball_radius + 4.0
+			_game_state.ball_velocity.x *= -1
+		elif  _game_state.ball_position.x >= _game_state.playing_area_rect.end.x:
+			_game_state.ball_position.x = _game_state.playing_area_rect.end.x - _game_state.ball_radius - 4.0
+			_game_state.ball_velocity.x *= -1
+		if _game_state.ball_position.y <= _game_state.playing_area_rect.position.y:
+			_game_state.ball_velocity.y *= -1
+			_game_state.ball_position.y = _game_state.playing_area_rect.position.y + _game_state.ball_radius + 4.0
+		elif _game_state.ball_position.y >= _game_state.playing_area_rect.end.y:
+			_game_state.ball_velocity.y *= -1
+			_game_state.ball_position.y = _game_state.playing_area_rect.position.y - _game_state.ball_radius - 4.0
 		print(\"TRUTEN\")
 
 func _place_ball_to_launch_position() -> void:
@@ -264,8 +273,20 @@ func _on_health_expired() -> void:
 	get_tree().reload_current_scene()
 
 
-func _on_game_starging_ui_start_button_pressed() -> void:
+func _on_game_starging_ui_start_button_pressed(ability:GameAbilitiesNamespace.Types) -> void:
 	(%GameStartingUI as Control).hide()
+	match ability:
+		GameAbilitiesNamespace.Types.SLOWTIME:
+			chosen_ability = $SlowtimeAbility
+		GameAbilitiesNamespace.Types.SHOW_BALL_TRAJECTORY:
+			chosen_ability = $BallTrajectroryAbility
+		GameAbilitiesNamespace.Types.PLATFORM_ACCELERATION:
+			chosen_ability = $PlatformAccelerationAbility
+		GameAbilitiesNamespace.Types.PLATFORM_EXTENSION:
+			chosen_ability = $PlatformExtensionAbility
+		GameAbilitiesNamespace.Types.MAGNETISM:
+			chosen_ability = $MagnetismAbility
+	
 	_game_state.state_machine.go_state(GameState.LAUNCHING_BALL_STATE)
 
 

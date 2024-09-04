@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="AbilityInfo" load_steps=3 format=3 uid="uid://sor7jwll2bs8"]
+
+[ext_resource type="Script" path="res://scripts/AbilityInfo.gd" id="1_bg6kw"]
+[ext_resource type="Texture2D" uid="uid://c3tquqsp3rh14" path="res://icon.svg" id="1_ui5lu"]
+
+[resource]
+script = ExtResource("1_bg6kw")
+ability_name = "Magnetism"
+ability_texture = ExtResource("1_ui5lu")
+ability_type = 4

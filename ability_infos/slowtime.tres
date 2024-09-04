@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="AbilityInfo" load_steps=3 format=3 uid="uid://c07b50kexxf7s"]
+
+[ext_resource type="Texture2D" uid="uid://c3tquqsp3rh14" path="res://icon.svg" id="1_xviy4"]
+[ext_resource type="Script" path="res://scripts/AbilityInfo.gd" id="1_ygq1e"]
+
+[resource]
+script = ExtResource("1_ygq1e")
+ability_name = "Slowing time"
+ability_texture = ExtResource("1_xviy4")
+ability_type = 0

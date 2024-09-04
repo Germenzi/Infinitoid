@@ -1,4 +1,4 @@
-[gd_scene load_steps=3 format=3 uid="uid://dj4cqaqhhkqus"]
+[gd_scene load_steps=6 format=3 uid="uid://dj4cqaqhhkqus"]
 
 [ext_resource type="Theme" uid="uid://dmce53ilrrlem" path="res://main-theme.tres" id="1_ak752"]
 
@@ -6,11 +6,102 @@
 resource_name = "main"
 script/source = "extends Control
 
-signal start_button_pressed
+signal start_button_pressed(chosen_ability:GameAbilitiesNamespace.Types)
 
+
+func _on_ability_list_start_button_pressed(ability_chosen: GameAbilitiesNamespace.Types) -> void:
+	start_button_pressed.emit(ability_chosen)
+"
+
+[sub_resource type="LabelSettings" id="LabelSettings_5ioai"]
+font_size = 50
+
+[sub_resource type="GDScript" id="GDScript_qi165"]
+resource_name = "ability_list"
+script/source = "extends HBoxContainer
+
+signal start_button_pressed(ability_chosen:GameAbilitiesNamespace.Types)
+
+var _focused_ability : int = -1
+var _selected_ability : int = -1
+var _is_selecting_ability : bool = true
+
+func _ready() -> void:
+	var i : int = 1
+	for ability_info:AbilityInfo in AbilitiesListDBNamespace.AVAILIBLE_ABILITIES:
+		var entry : AbilityListEntry = GameAbilitiesNamespace.ABILITY_UI_ENTRY_SCENE.instantiate()
+		
+		entry.build(ability_info.ability_name, i, 
+			ability_info.ability_texture if ability_info.ability_texture else GameAbilitiesNamespace.ABILITY_FALLBACK_ICON)
+		entry.ability_info = ability_info
+		add_child(entry)
+		i += 1
+
+
+func _input(event: InputEvent) -> void:
+	if get_child_count() == 0:
+		return
+	
+	if event.is_action_pressed(\"ability_selecting_next\") and _is_selecting_ability:
+		if _focused_ability == -1:
+			_focused_ability = 0
+		else:
+			_focused_ability = (_focused_ability+1)%get_child_count()
+		get_children().map(func(v:AbilityListEntry): v.set_mark_as_selecting(false))
+		(get_child(_focused_ability) as AbilityListEntry).set_mark_as_selecting(true)
+	
+	if event.is_action_pressed(\"ability_selecting_prev\") and _is_selecting_ability:
+		if _focused_ability == -1:
+			_focused_ability = 0
+		else:
+			_focused_ability = ((_focused_ability-1) + get_child_count()) % get_child_count()
+		get_children().map(func(v:AbilityListEntry): v.set_mark_as_selecting(false))
+		(get_child(_focused_ability) as AbilityListEntry).set_mark_as_selecting(true)
+	
+	if event.is_action_pressed(\"platform_launch_ball\") and _is_selecting_ability:
+		if _focused_ability != -1:
+			get_children().map(func(v:AbilityListEntry): v.set_mark_as_selected(false))
+			(get_child(_focused_ability) as AbilityListEntry).set_mark_as_selected(true)
+			_selected_ability = _focused_ability
+			(%StartButton as Button).disabled = false
+	
+	if event.is_action_pressed(\"ability_selecting_down\"):
+		(%StartButton as Button).grab_focus()
+	
+	if event.is_action_pressed(\"ability_selecting_up\"):
+		(%StartButton as Button).release_focus()
+
+
+func _on_start_button_focus_entered() -> void:
+	_is_selecting_ability = false
+	(get_child(_focused_ability) as AbilityListEntry).set_mark_as_selecting(false)
+	_focused_ability = -1
+
+
+func _on_start_button_focus_exited() -> void:
+	_is_selecting_ability = true
+	_focused_ability = 0
+	(get_child(_focused_ability) as AbilityListEntry).set_mark_as_selecting(true)
 
 func _on_start_button_pressed() -> void:
-	start_button_pressed.emit()
+	if _selected_ability == -1:
+		return
+	
+	start_button_pressed.emit((get_child(_selected_ability) as AbilityListEntry).ability_info.ability_type)
+"
+
+[sub_resource type="GDScript" id="GDScript_27bs7"]
+resource_name = "start_button"
+script/source = "extends Button
+
+
+
+func _on_focus_entered() -> void:
+	($FocusIndicator as CanvasItem).show()
+
+
+func _on_focus_exited() -> void:
+	($FocusIndicator as CanvasItem).hide()
 "
 
 [node name="GameStartingUI" type="Control"]
@@ -39,12 +130,51 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_constants/separation = 50
 alignment = 1
 
+[node name="Label" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+text = "Choose boosting ability"
+label_settings = SubResource("LabelSettings_5ioai")
+horizontal_alignment = 1
+
+[node name="AbilityList" type="HBoxContainer" parent="VBoxContainer"]
+show_behind_parent = true
+layout_mode = 2
+theme_override_constants/separation = 20
+alignment = 1
+script = SubResource("GDScript_qi165")
+
 [node name="StartButton" type="Button" parent="VBoxContainer"]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_font_sizes/font_size = 50
+disabled = true
 text = "   Start   "
+script = SubResource("GDScript_27bs7")
 
-[connection signal="pressed" from="VBoxContainer/StartButton" to="." method="_on_start_button_pressed"]
+[node name="FocusIndicator" type="MarginContainer" parent="VBoxContainer/StartButton"]
+visible = false
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 0.113
+anchor_bottom = 1.0
+offset_right = 0.0319977
+grow_vertical = 2
+theme_override_constants/margin_left = 7
+theme_override_constants/margin_top = 7
+theme_override_constants/margin_right = 7
+theme_override_constants/margin_bottom = 7
+
+[node name="ColorRect" type="ColorRect" parent="VBoxContainer/StartButton/FocusIndicator"]
+layout_mode = 2
+
+[connection signal="gui_input" from="VBoxContainer/AbilityList" to="VBoxContainer/AbilityList" method="_on_gui_input"]
+[connection signal="start_button_pressed" from="VBoxContainer/AbilityList" to="." method="_on_ability_list_start_button_pressed"]
+[connection signal="focus_entered" from="VBoxContainer/StartButton" to="VBoxContainer/StartButton" method="_on_focus_entered"]
+[connection signal="focus_entered" from="VBoxContainer/StartButton" to="VBoxContainer/AbilityList" method="_on_start_button_focus_entered"]
+[connection signal="focus_exited" from="VBoxContainer/StartButton" to="VBoxContainer/StartButton" method="_on_focus_exited"]
+[connection signal="focus_exited" from="VBoxContainer/StartButton" to="VBoxContainer/AbilityList" method="_on_start_button_focus_exited"]
+[connection signal="pressed" from="VBoxContainer/StartButton" to="VBoxContainer/AbilityList" method="_on_start_button_pressed"]
