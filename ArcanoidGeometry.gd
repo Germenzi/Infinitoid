@@ -13,6 +13,33 @@ class BallCollisionResult:
 		collided_rect_side = p_rect_side
 
 
+class RectGroupBannedSides:
+	extends RefCounted
+	
+	var _banned : Dictionary = {} # rect idx : banned sides
+	
+	func get_banned_sides(idx:int) -> Array[int]:
+		var res : Array[int] = [] # for type-safety only
+		for i:int in _banned.get(idx, []):
+			res.append(i)
+		return res
+	
+	func ban_side(rect_idx:int, side:int) -> void:
+		if not _banned.has(rect_idx):
+			_banned[rect_idx] = []
+		(_banned[rect_idx] as Array[int]).append(side)
+
+
+class BallCollisionResultGroup:
+	extends BallCollisionResult
+	
+	var collision_rect_index : int
+	
+	func _init(p_time:float, p_rect_side:int, p_rect_idx:int) -> void:
+		super(p_time, p_rect_side)
+		collision_rect_index = p_rect_idx
+
+
 ##CCD - continuous collision detection. Checking collisions only by rect sides 
 ##(if ball is inside rect, no collision detected) [br]
 static func ccd_circle_box(circle_begin:Vector2, circle_end:Vector2, circle_radius:float, rect:Rect2, banned_sides:Array=[]) -> BallCollisionResult:
@@ -51,3 +78,22 @@ static func ccd_circle_box(circle_begin:Vector2, circle_end:Vector2, circle_radi
 		return BallCollisionResult.new(intersection_time, rect_collision_side)
 	else:
 		return null
+
+
+static func ccd_circle_box_group(circle_begin:Vector2, circle_end:Vector2, 
+	circle_radius:float, rect_group:Array[Rect2], 
+	banned:RectGroupBannedSides=RectGroupBannedSides.new()) -> BallCollisionResultGroup:
+	
+		var earliest_collision : ArcanoidGeometry.BallCollisionResultGroup = null
+		for i:int in len(rect_group):
+			var rect : Rect2 = rect_group[i]
+			var ccd_res := ArcanoidGeometry.ccd_circle_box(
+				circle_begin, circle_end, circle_radius,
+				rect, banned.get_banned_sides(i)) 
+			
+			if ccd_res == null: continue
+			
+			if earliest_collision == null or ccd_res.collision_time < earliest_collision.collision_time:
+				earliest_collision = BallCollisionResultGroup.new(ccd_res.collision_time, ccd_res.collided_rect_side, i)
+		
+		return earliest_collision

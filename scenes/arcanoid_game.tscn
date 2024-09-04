@@ -105,52 +105,33 @@ func _process_controlling_ball(delta:float) -> void:
 	var platform_rect : Rect2 = _game_state.platform_rect
 	
 	var frametime : float = 0.0
-	var banned_rect_side : Array[int] = [] # rect idx, side idx, group idx
-	
-	var collide_group : Callable = func(rect_group:Array[Rect2], group_idx:int, banned_rect:Array, frame_time:float):
-		var earliest_collision : ArcanoidGeometry.BallCollisionResult = null
-		var collision_rect : int
-		for i:int in len(rect_group):
-			var rect : Rect2 = rect_group[i]
-			var ccd_res := ArcanoidGeometry.ccd_circle_box(
-				_game_state.ball_position, 
-				_game_state.ball_position+_game_state.ball_velocity*delta,
-				_game_state.ball_radius,
-				rect, [banned_rect[1]] if 
-					(not banned_rect.is_empty() and i == banned_rect[0] and group_idx == banned_rect[2]) else []) 
-			
-			if ccd_res == null: continue
-			
-			if 0.0 <= ccd_res.collision_time and ccd_res.collision_time <= (1.0-frame_time):
-				if earliest_collision == null or ccd_res.collision_time < earliest_collision.collision_time:
-					earliest_collision = ccd_res
-					collision_rect = i
-		
-		return [earliest_collision, collision_rect]
-	
-	
+	var banned_rects_sides := ArcanoidGeometry.RectGroupBannedSides.new()
 	while true:
-		var earliest_collision : ArcanoidGeometry.BallCollisionResult = null
-		var collision_rect : int
+		var earliest_collision : ArcanoidGeometry.BallCollisionResultGroup = null
 		var collision_type : BallCollisionTypes
 		
-		var collision_with_borders : Array = collide_group.call([playing_area_limiter_rect] as Array[Rect2], BallCollisionTypes.BORDER, banned_rect_side, frametime)
-		var collsion_with_platform : Array = collide_group.call([platform_rect] as Array[Rect2], BallCollisionTypes.PLATFORM, banned_rect_side, frametime)
-		var collision_with_blocks : Array = collide_group.call(_game_state.blocks as Array[Rect2], BallCollisionTypes.BLOCK, banned_rect_side, frametime)
+		var collision_with_borders := ArcanoidGeometry.ccd_circle_box_group(
+				_game_state.ball_position, _game_state.ball_position+_game_state.ball_velocity*delta, _game_state.ball_radius,
+				[playing_area_limiter_rect] as Array[Rect2], banned_rects_sides)
+			
+		var collsion_with_platform := ArcanoidGeometry.ccd_circle_box_group(
+				_game_state.ball_position, _game_state.ball_position+_game_state.ball_velocity*delta, _game_state.ball_radius,
+				[platform_rect] as Array[Rect2], banned_rects_sides)
 		
-		if collision_with_borders[0] != null:
-			earliest_collision = collision_with_borders[0]
-			collision_rect = collision_with_borders[1]
+		var collision_with_blocks := ArcanoidGeometry.ccd_circle_box_group(
+				_game_state.ball_position, _game_state.ball_position+_game_state.ball_velocity*delta, _game_state.ball_radius,
+				_game_state.blocks, banned_rects_sides)
+			
+		if collision_with_borders != null:
+			earliest_collision = collision_with_borders
 			collision_type = BallCollisionTypes.BORDER
 		
-		if collsion_with_platform[0] != null and (earliest_collision == null or collsion_with_platform[0].collision_time < earliest_collision.collision_time):
-			earliest_collision = collsion_with_platform[0]
-			collision_rect = collsion_with_platform[1]
+		if collsion_with_platform != null and (earliest_collision == null or collsion_with_platform.collision_time < earliest_collision.collision_time):
+			earliest_collision = collsion_with_platform
 			collision_type = BallCollisionTypes.PLATFORM
 		
-		if collision_with_blocks[0] != null and (earliest_collision == null  or collision_with_blocks[0].collision_time < earliest_collision.collision_time):
-			earliest_collision = collision_with_blocks[0]
-			collision_rect = collision_with_blocks[1]
+		if collision_with_blocks != null and (earliest_collision == null  or collision_with_blocks.collision_time < earliest_collision.collision_time):
+			earliest_collision = collision_with_blocks
 			collision_type = BallCollisionTypes.BLOCK
 		
 		if earliest_collision == null:
@@ -170,21 +151,23 @@ func _process_controlling_ball(delta:float) -> void:
 					_game_state.ball_velocity.y *= -1
 				else:
 					_game_state.ball_velocity.x *= -1
-				banned_rect_side = [collision_rect, earliest_collision.collided_rect_side, BallCollisionTypes.BORDER]
+				banned_rects_sides = ArcanoidGeometry.RectGroupBannedSides.new()
+				banned_rects_sides.ban_side(earliest_collision.collision_rect_index, earliest_collision.collided_rect_side)
 				
 			BallCollisionTypes.PLATFORM:
 				_game_state.ball_velocity = (_game_state.ball_position-_game_state.platform_rect.get_center()).normalized() * _game_state.ball_velocity.length()
 				_on_ball_platform_collision.call_deferred()
-				banned_rect_side = [collision_rect, earliest_collision.collided_rect_side, BallCollisionTypes.PLATFORM]
+				banned_rects_sides = ArcanoidGeometry.RectGroupBannedSides.new()
+				banned_rects_sides.ban_side(earliest_collision.collision_rect_index, earliest_collision.collided_rect_side)
 				
 			BallCollisionTypes.BLOCK:
-				_game_state.blocks.remove_at(collision_rect)
+				_game_state.blocks.remove_at(earliest_collision.collision_rect_index)
 				if (earliest_collision.collided_rect_side == SIDE_TOP or earliest_collision.collided_rect_side == SIDE_BOTTOM):
 					_game_state.ball_velocity.y *= -1
 				else:
 					_game_state.ball_velocity.x *= -1
 				_game_state.score += 1
-				banned_rect_side = []
+				banned_rects_sides = ArcanoidGeometry.RectGroupBannedSides.new()
 
 
 func _place_ball_to_launch_position() -> void:
