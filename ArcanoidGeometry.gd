@@ -5,12 +5,10 @@ class_name ArcanoidGeometry
 class BallCollisionResult:
 	extends RefCounted
 	
-	var is_collision_detected : bool
 	var collision_time : float
 	var collided_rect_side : int
 	
-	func _init(p_collision_detected:bool, p_time:float, p_rect_side:int) -> void:
-		is_collision_detected = p_collision_detected
+	func _init(p_time:float, p_rect_side:int) -> void:
 		collision_time = p_time
 		collided_rect_side = p_rect_side
 
@@ -23,7 +21,7 @@ static func ccd_circle_box(circle_begin:Vector2, circle_end:Vector2, circle_radi
 	var rect_ball_collide : Rect2 = rect.abs().grow(circle_radius)
 	
 	if not ball_aabb.intersects(rect_ball_collide):
-		return BallCollisionResult.new(false, 0.0, 0)
+		return null
 	
 	var rect_ball_collide_points : Array[Vector2] = [ # clockwise rect points, respecting to SIDEs enum
 		rect_ball_collide.position + Vector2(0, rect_ball_collide.size.y),
@@ -50,6 +48,6 @@ static func ccd_circle_box(circle_begin:Vector2, circle_end:Vector2, circle_radi
 			rect_collision_side = i
 	
 	if intersection_time <= 1.0:
-		return BallCollisionResult.new(true, intersection_time, rect_collision_side)
+		return BallCollisionResult.new(intersection_time, rect_collision_side)
 	else:
-		return BallCollisionResult.new(false, 0.0, 0)
+		return null
