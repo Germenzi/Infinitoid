@@ -1,0 +1,93 @@
+[gd_scene load_steps=5 format=3 uid="uid://6folc8h7iqa7"]
+
+[ext_resource type="Theme" uid="uid://dmce53ilrrlem" path="res://main-theme.tres" id="1_vlkkw"]
+
+[sub_resource type="GDScript" id="GDScript_40dtk"]
+resource_name = "main"
+script/source = "extends Control
+
+signal restart_button_pressed
+signal quit_game_button_pressed
+signal main_menu_button_pressed
+
+
+func _on_restart_button_pressed() -> void:
+	restart_button_pressed.emit()
+
+
+func _on_quit_game_button_pressed() -> void:
+	quit_game_button_pressed.emit()
+
+
+func _on_main_menu_pressed() -> void:
+	main_menu_button_pressed.emit()
+"
+
+[sub_resource type="LabelSettings" id="LabelSettings_gp6l6"]
+font_size = 50
+
+[sub_resource type="LabelSettings" id="LabelSettings_f10qe"]
+font_size = 30
+
+[node name="GameOverScreen" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("1_vlkkw")
+script = SubResource("GDScript_40dtk")
+
+[node name="ColorRect" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.784314)
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 13
+anchor_left = 0.5
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -48.0
+offset_right = 48.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="GameOverLabel" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+text = "Game over"
+label_settings = SubResource("LabelSettings_gp6l6")
+horizontal_alignment = 1
+
+[node name="ScoreLabel" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+text = "Score: "
+label_settings = SubResource("LabelSettings_f10qe")
+horizontal_alignment = 1
+
+[node name="RestartButton" type="Button" parent="VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "Restart"
+
+[node name="QuitGameButton" type="Button" parent="VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "Quit game"
+
+[node name="MainMenuButton" type="Button" parent="VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "Main menu"
+
+[connection signal="pressed" from="VBoxContainer/RestartButton" to="." method="_on_restart_button_pressed"]
+[connection signal="pressed" from="VBoxContainer/QuitGameButton" to="." method="_on_quit_game_button_pressed"]
+[connection signal="pressed" from="VBoxContainer/MainMenuButton" to="." method="_on_main_menu_pressed"]
