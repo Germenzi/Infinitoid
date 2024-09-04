@@ -170,7 +170,7 @@ func _process_controlling_ball(delta:float) -> void:
 				banned_rects_sides.ban_side(earliest_collision.collision_rect_index, earliest_collision.collided_rect_side)
 				
 			BallCollisionTypes.PLATFORM:
-				_game_state.ball_velocity = (_game_state.ball_position-_game_state.platform_rect.get_center()).normalized() * _game_state.ball_velocity.length()
+				_game_state.ball_velocity = (_game_state.ball_position-_game_state.platform_rect.get_center()-Vector2(0, 20)).normalized() * _game_state.ball_velocity.length()
 				_on_ball_platform_collision.call_deferred()
 				banned_rects_sides = ArcanoidGeometry.RectGroupBannedSides.new()
 				banned_rects_sides.ban_side(earliest_collision.collision_rect_index, earliest_collision.collided_rect_side)
@@ -463,6 +463,7 @@ script = SubResource("GDScript_1clpx")
 
 [node name="MagnetismAbility" type="Node" parent="GameController"]
 script = SubResource("GDScript_6431r")
+magnetism_power = 20.0
 
 [node name="GameState" type="Node" parent="."]
 unique_name_in_owner = true
@@ -472,10 +473,11 @@ initial_ball_speed = 500.0
 initial_platform_size = Vector2(80, 10)
 initial_platform_speed = 400.0
 platform_height = 10.0
-block_size = Vector2(50, 20)
+block_size = Vector2(70, 20)
 block_rows_gap = 2.0
 blocks_columns_gap = 2.0
 initial_block_spawn_amount = 5
+blocks_deadline_height = 600.0
 top_row_gap = 30.0
 
 [node name="GUI" type="CanvasLayer" parent="."]
