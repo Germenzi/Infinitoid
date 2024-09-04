@@ -23,6 +23,7 @@ script/source = "extends HBoxContainer
 signal start_button_pressed(ability_chosen:GameAbilitiesNamespace.Types)
 
 var _focused_ability : int = -1
+var _last_focused_ability : int = _focused_ability
 var _selected_ability : int = -1
 var _is_selecting_ability : bool = true
 
@@ -47,25 +48,22 @@ func _input(event: InputEvent) -> void:
 			_focused_ability = 0
 		else:
 			_focused_ability = (_focused_ability+1)%get_child_count()
-		get_children().map(func(v:AbilityListEntry): v.set_mark_as_selecting(false))
-		(get_child(_focused_ability) as AbilityListEntry).set_mark_as_selecting(true)
-		(%DescriptionLabel as Label).text = (get_child(_focused_ability) as AbilityListEntry).ability_info.description
+		unhover_abilities()
+		hover_ability(_focused_ability)
 	
 	if event.is_action_pressed(\"ability_selecting_prev\") and _is_selecting_ability:
 		if _focused_ability == -1:
 			_focused_ability = 0
 		else:
 			_focused_ability = ((_focused_ability-1) + get_child_count()) % get_child_count()
-		get_children().map(func(v:AbilityListEntry): v.set_mark_as_selecting(false))
-		(get_child(_focused_ability) as AbilityListEntry).set_mark_as_selecting(true)
-		(%DescriptionLabel as Label).text = (get_child(_focused_ability) as AbilityListEntry).ability_info.description
+		unhover_abilities()
+		hover_ability(_focused_ability)
 	
 	if event.is_action_pressed(\"platform_launch_ball\") and _is_selecting_ability:
 		if _focused_ability != -1:
-			get_children().map(func(v:AbilityListEntry): v.set_mark_as_selected(false))
-			(get_child(_focused_ability) as AbilityListEntry).set_mark_as_selected(true)
-			_selected_ability = _focused_ability
-			(%StartButton as Button).disabled = false
+			deselect_abilities()
+			select_ability(_focused_ability)
+
 	
 	if event.is_action_pressed(\"ability_selecting_down\"):
 		(%StartButton as Button).grab_focus()
@@ -74,17 +72,45 @@ func _input(event: InputEvent) -> void:
 		(%StartButton as Button).release_focus()
 
 
+func select_ability(idx:int) -> void:
+	(get_child(_focused_ability) as AbilityListEntry).set_mark_as_selected(true)
+	_selected_ability = _focused_ability
+	(%StartButton as Button).disabled = false
+
+
+func deselect_abilities() -> void:
+	get_children().map(func(v:AbilityListEntry): v.set_mark_as_selected(false))
+
+
+func hover_ability(idx:int) -> void:
+	_last_focused_ability = idx
+	(get_child(_focused_ability) as AbilityListEntry).set_mark_as_selecting(true)
+	(%DescriptionLabel as Label).text = (get_child(_focused_ability) as AbilityListEntry).ability_info.description
+
+
+func unhover_abilities() -> void:
+	get_children().map(func(v:AbilityListEntry): v.set_mark_as_selecting(false))
+	if _selected_ability != -1:
+		(%DescriptionLabel as Label).text = (get_child(_selected_ability) as AbilityListEntry).ability_info.description
+	else:
+		(%DescriptionLabel as Label).text = \"\"
+
+
 func _on_start_button_focus_entered() -> void:
 	_is_selecting_ability = false
-	(get_child(_focused_ability) as AbilityListEntry).set_mark_as_selecting(false)
+	unhover_abilities()
 	_focused_ability = -1
-	(%DescriptionLabel as Label).text = \"\"
+	if _selected_ability != -1:
+		(%DescriptionLabel as Label).text = (get_child(_selected_ability) as AbilityListEntry).ability_info.description
+	else:
+		(%DescriptionLabel as Label).text = \"\"
 
 
 func _on_start_button_focus_exited() -> void:
 	_is_selecting_ability = true
-	_focused_ability = 0
-	(get_child(_focused_ability) as AbilityListEntry).set_mark_as_selecting(true)
+	_focused_ability = _last_focused_ability
+	hover_ability(_focused_ability)
+
 
 func _on_start_button_pressed() -> void:
 	if _selected_ability == -1:

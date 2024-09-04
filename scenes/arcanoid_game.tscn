@@ -468,7 +468,7 @@ magnetism_power = 20.0
 [node name="GameState" type="Node" parent="."]
 unique_name_in_owner = true
 script = ExtResource("3_6rb05")
-initial_ball_radius = 5.0
+initial_ball_radius = 7.0
 initial_ball_speed = 500.0
 initial_platform_size = Vector2(80, 10)
 initial_platform_speed = 400.0
