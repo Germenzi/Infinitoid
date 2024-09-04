@@ -5,6 +5,7 @@ class_name GameState
 const GAME_STARTING_STATE : StringName = &"GAME_STARTING_STATE"
 const LAUNCHING_BALL_STATE : StringName = &"LAUNCHING_BALL_STATE"
 const CONTROLLING_BALL_STATE : StringName = &"CONTROLLING_BALL_STATE"
+const WAITING_FOR_DAMAGE_STATE : StringName = &"WAITING_FOR_DAMAGE_STATE"
 
 @export_range(1.0, 1.5)
 var speed_factor : float = 1.05
@@ -14,6 +15,9 @@ var maximum_health : int = 3
 
 @export
 var playing_area_size : Vector2 = Vector2(800, 500)
+
+@export
+var playing_area_rect_color : Color = Color.WHITE
 
 @export_category("Ball")
 @export_range(2.0, 200.0)

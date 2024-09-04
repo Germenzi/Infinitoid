@@ -21,7 +21,7 @@ func _process(delta: float) -> void:
 
 
 func _draw() -> void:
-	draw_rect(Rect2(Vector2.ZERO, _game_state.playing_area_size), Color.WHITE, false)
+	draw_rect(Rect2(Vector2.ZERO, _game_state.playing_area_size), _game_state.playing_area_rect_color, false)
 	
 	draw_line(Vector2(0, _game_state.blocks_deadline_height), 
 		Vector2(_game_state.playing_area_size.x, _game_state.blocks_deadline_height), 
@@ -56,18 +56,28 @@ script/source = "extends Node
 @onready
 var _game_state : GameState = %GameState
 
+const DAMAGE_TIME_AWATING : float = 1.0 # sec
+
 enum BallCollisionTypes {
 	BORDER,
 	PLATFORM,
 	BLOCK
 }
 
+enum DamageReasons {
+	BALL_FALLED,
+	DEADLINE_REACHED,
+}
+
 var chosen_ability : Ability
+
+var _damage_reason : DamageReasons
 
 func _ready() -> void:
 	_game_state.state_machine.handle_state(GameState.GAME_STARTING_STATE, _on_state_game_starting)
 	_game_state.state_machine.handle_state(GameState.LAUNCHING_BALL_STATE, _on_state_launching_ball)
 	_game_state.state_machine.handle_state(GameState.CONTROLLING_BALL_STATE, _on_state_controlling_ball)
+	_game_state.state_machine.handle_state(GameState.WAITING_FOR_DAMAGE_STATE, _on_state_waiting_for_damage)
 	
 	_game_state.state_machine.state = GameState.GAME_STARTING_STATE
 
@@ -89,6 +99,15 @@ func _on_state_launching_ball() -> void:
 func _on_state_controlling_ball() -> void:
 	pass
 
+
+func _on_state_waiting_for_damage() -> void:
+	var old_color : Color = _game_state.playing_area_rect_color
+	var tween := create_tween()
+	tween.tween_property(_game_state, \"playing_area_rect_color\", 
+		Color.RED, DAMAGE_TIME_AWATING*0.2)
+	tween.chain().tween_property(_game_state, \"playing_area_rect_color\",
+		old_color, DAMAGE_TIME_AWATING*0.8)
+	
 
 func _process(delta: float) -> void:
 	match _game_state.state_machine.state:
@@ -267,22 +286,28 @@ func _on_ball_platform_collision() -> void:
 
 
 func _on_ball_falled() -> void:
+	_damage_reason = DamageReasons.BALL_FALLED
+	await _do_damage()
 	_game_state.state_machine.go_state(GameState.LAUNCHING_BALL_STATE)
-	_game_state.health -= 1
-	
-	if _game_state.health <= 0:
-		_on_health_expired()
 
 
 func _on_blocks_reached_deadline() -> void:
+	_damage_reason = DamageReasons.DEADLINE_REACHED
+	await _do_damage()
+	
 	_game_state.blocks = []
 	for i:int in _game_state.initial_block_rows:
 		_spawn_blocks_layer()
+	_game_state.state_machine.go_state(GameState.LAUNCHING_BALL_STATE)
+
+
+func _do_damage() -> void:
 	_game_state.health -= 1
 	if _game_state.health <= 0:
 		_on_health_expired()
 	else:
-		_game_state.state_machine.go_state(GameState.LAUNCHING_BALL_STATE)
+		_game_state.state_machine.go_state(GameState.WAITING_FOR_DAMAGE_STATE)
+		await get_tree().create_timer(DAMAGE_TIME_AWATING).timeout
 
 
 func _on_health_expired() -> void:
@@ -453,6 +478,15 @@ func _process(delta: float) -> void:
 [sub_resource type="Environment" id="Environment_a6df3"]
 background_mode = 3
 glow_enabled = true
+glow_levels/1 = 5.99
+glow_levels/2 = 2.71
+glow_levels/3 = 2.22
+glow_levels/5 = 0.0
+glow_normalized = true
+glow_intensity = 1.75
+glow_strength = 0.64
+glow_bloom = 0.39
+glow_blend_mode = 0
 
 [node name="ArcanoidGame" type="Node"]
 
