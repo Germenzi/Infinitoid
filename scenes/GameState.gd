@@ -54,8 +54,11 @@ var blocks_columns_gap : float = 4.0
 @export_range(1, 1000)
 var initial_block_spawn_amount : int = 1
 
-@export_range(1, 10)
+@export_range(1, 100)
 var initial_block_rows : int = 5
+
+@export_range(0.0, 10000.0)
+var blocks_deadline_height : float = 400.0
 
 @export_range(0.0, 100.0)
 var top_row_gap : float = 50.0
@@ -95,7 +98,7 @@ func _enter_tree() -> void:
 	platform_speed = initial_platform_speed
 	platform_rect = Rect2(Vector2.ZERO, initial_platform_size)
 	
-	playing_area_rect = Rect2(Vector2.ZERO, get_tree().root.size)
+	playing_area_rect = Rect2(Vector2.ZERO, get_tree().root.content_scale_size)
 	
 	blocks_columns = playing_area_rect.size.x / (block_size.x + blocks_columns_gap)
 	blocks_spawn_count = initial_block_spawn_amount

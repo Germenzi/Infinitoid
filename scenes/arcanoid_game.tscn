@@ -25,6 +25,10 @@ func _draw() -> void:
 		draw_rect(block.grow(-_game_state.block_draw_width/2.0), 
 		_game_state.block_color, false, _game_state.block_draw_width, false
 		)
+	
+	draw_line(_game_state.playing_area_rect.position+Vector2(0, _game_state.blocks_deadline_height), 
+		_game_state.playing_area_rect.position+Vector2(_game_state.playing_area_rect.size.x, _game_state.blocks_deadline_height), 
+		Color(_game_state.block_color, 0.3), _game_state.block_draw_width, true)
 "
 
 [sub_resource type="GDScript" id="GDScript_ypwq7"]
@@ -52,7 +56,7 @@ func _on_state_game_starting() -> void:
 	_game_state.platform_rect.position = Vector2(
 		_game_state.playing_area_rect.position.x+_game_state.playing_area_rect.size.x/2.0 -_game_state.platform_rect.size.x/2.0, 
 		_game_state.playing_area_rect.end.y-_game_state.platform_height-_game_state.platform_rect.size.y)
-	
+	print(_game_state.playing_area_rect)
 	_place_ball_to_launch_position()
 	for i:int in _game_state.initial_block_rows:
 		_spawn_blocks_layer()
@@ -182,7 +186,18 @@ func _process_controlling_ball(delta:float) -> void:
 					_game_state.ball_velocity.x *= -1
 				_game_state.score += 1
 				banned_rect_side = []
-		
+	
+	
+	for rect:Rect2 in _game_state.blocks:
+		if rect.end.y > _game_state.blocks_deadline_height:
+			_game_state.blocks = []
+			for i:int in _game_state.initial_block_rows:
+				_spawn_blocks_layer()
+			_game_state.health -= 1
+			_game_state.state_machine.go_state(GameState.LAUNCHING_BALL_STATE)
+			if _game_state.health <= 0:
+				get_tree().reload_current_scene()
+			break
 
 
 func _place_ball_to_launch_position() -> void:
@@ -236,7 +251,7 @@ func _on_ball_falled() -> void:
 	_game_state.state_machine.go_state(GameState.LAUNCHING_BALL_STATE)
 	_game_state.health -= 1
 	
-	if _game_state.health == 0:
+	if _game_state.health <= 0:
 		get_tree().reload_current_scene()
 
 
@@ -253,7 +268,7 @@ script/source = "extends Label
 var _game_state : GameState = %GameState
 
 func _process(delta: float) -> void:
-	text = \"Ball speed: %.3f\" % _game_state.ball_velocity.length()
+	text = \"Ball speed: %.0f\" % _game_state.ball_velocity.length()
 "
 
 [sub_resource type="GDScript" id="GDScript_fgexy"]
@@ -299,6 +314,7 @@ block_size = Vector2(50, 20)
 block_rows_gap = 2.0
 blocks_columns_gap = 2.0
 initial_block_spawn_amount = 5
+initial_block_rows = 15
 top_row_gap = 30.0
 
 [node name="GUI" type="CanvasLayer" parent="."]
