@@ -1,0 +1,11 @@
+extends Object
+
+class_name GameAbilitiesNamespace
+
+enum {
+	SLOWTIME,
+	SHOW_BALL_TRAJECTORY,
+	PLATFORM_ACCELERATION,
+	PLATFORM_EXTENSION,
+	MAGNETISM,
+}

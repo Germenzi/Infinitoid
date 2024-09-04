@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://bixm1xmwh4h83"]
+[gd_scene load_steps=14 format=3 uid="uid://bixm1xmwh4h83"]
 
 [ext_resource type="Theme" uid="uid://dmce53ilrrlem" path="res://main-theme.tres" id="2_665qb"]
 [ext_resource type="Script" path="res://GameState.gd" id="3_6rb05"]
@@ -46,6 +46,9 @@ enum BallCollisionTypes {
 	BLOCK
 }
 
+@onready
+var chosen_ability : Ability = $BallTrajectroryAbility#$MagnetismAbility#$PlatformExtensionAbility#$PlatformAccelerationAbility
+
 func _ready() -> void:
 	_game_state.state_machine.handle_state(GameState.GAME_STARTING_STATE, _on_state_game_starting)
 	_game_state.state_machine.handle_state(GameState.LAUNCHING_BALL_STATE, _on_state_launching_ball)
@@ -65,6 +68,7 @@ func _on_state_game_starting() -> void:
 
 
 func _on_state_launching_ball() -> void:
+	chosen_ability.deactivate()
 	_place_ball_to_launch_position()
 
 
@@ -101,6 +105,14 @@ func _process_controlling_ball(delta:float) -> void:
 	const PLATFORM_HEIGHT : float = 20.0
 	
 	_handle_platform_movement(delta)
+	
+	if Input.is_action_just_pressed(\"platform_launch_ball\"):
+		if chosen_ability != null:
+			chosen_ability.activate()
+	
+	if Input.is_action_just_released(\"platform_launch_ball\"):
+		if chosen_ability != null:
+				chosen_ability.deactivate()
 	
 	var playing_area_limiter_rect : Rect2 = _game_state.playing_area_rect.grow(-_game_state.ball_radius*2)
 	var platform_rect : Rect2 = _game_state.platform_rect
@@ -175,8 +187,8 @@ func _process_controlling_ball(delta:float) -> void:
 	
 	# hardcoded bugfix, when ball super rarely just ignore walls
 	if not _game_state.playing_area_rect.has_point(_game_state.ball_position):
-		_game_state.ball_position = old_ball_position - old_ball_velocity*delta*1e-3
-		_game_state.ball_velocity = old_ball_velocity.rotated(randf_range(-1e-3, 1e-3))
+		_game_state.ball_position = old_ball_position - old_ball_velocity*delta
+		_game_state.ball_velocity = old_ball_velocity.rotated(randf_range(-1e-1, 1e-1))
 		print(\"TRUTEN\")
 
 func _place_ball_to_launch_position() -> void:
@@ -255,6 +267,117 @@ func _on_health_expired() -> void:
 func _on_game_starging_ui_start_button_pressed() -> void:
 	(%GameStartingUI as Control).hide()
 	_game_state.state_machine.go_state(GameState.LAUNCHING_BALL_STATE)
+
+
+func _on_drawer_draw() -> void:
+	if not chosen_ability:
+		return
+	
+	(%Drawer as CanvasItem).draw_rect(_game_state.platform_rect.grow_side(SIDE_RIGHT,
+		-_game_state.platform_rect.size.x*(1.0-chosen_ability.relative_balance)),
+		_game_state.platform_color)
+"
+
+[sub_resource type="GDScript" id="GDScript_khgdo"]
+resource_name = "slowtime_ability"
+script/source = "extends Ability
+
+
+@onready 
+var _game_state: GameState = %GameState
+
+@export_range(0.1, 1.0)
+var slow_time_value : float = 0.3
+
+
+func _on_activated() -> void:
+	_active = true
+	Engine.time_scale = slow_time_value
+
+
+func _on_deactivated() -> void:
+	_active = false
+	Engine.time_scale = 1.0
+"
+
+[sub_resource type="GDScript" id="GDScript_jnwm8"]
+resource_name = "ball_trajectory_ability"
+script/source = "extends Ability
+
+@onready 
+var _game_state: GameState = %GameState
+
+
+func _on_drawer_draw() -> void:
+	if not _active:
+		return
+	
+	if _game_state.state_machine.state != GameState.CONTROLLING_BALL_STATE:
+		return
+	
+	(%Drawer as CanvasItem).draw_line(_game_state.ball_position, 
+		_game_state.ball_position+_game_state.ball_velocity, 
+		_game_state.ball_color, 1.0, true)
+"
+
+[sub_resource type="GDScript" id="GDScript_col8f"]
+resource_name = "platform_acceleration_ability"
+script/source = "extends Ability
+
+@onready 
+var _game_state: GameState = %GameState
+
+@export_range(1.0, 5.0)
+var acceleration_value : float = 1.1
+
+func _on_activated() -> void:
+	_active = true
+	_game_state.platform_speed *= acceleration_value
+
+
+func _on_deactivated() -> void:
+	_active = false
+	_game_state.platform_speed /= acceleration_value
+"
+
+[sub_resource type="GDScript" id="GDScript_1clpx"]
+resource_name = "platform_extension_ability"
+script/source = "extends Ability
+
+@export_range(0.0, 1_000.0)
+var extension_distance : float = 20.0
+
+@onready
+var _game_state: GameState = %GameState
+
+func _on_activated() -> void:
+	_game_state.platform_rect = _game_state.platform_rect.grow_individual(extension_distance, 0.0, extension_distance, 0.0)
+
+
+func _on_deactivated() -> void:
+	_game_state.platform_rect = _game_state.platform_rect.grow_individual(-extension_distance, 0.0, -extension_distance, 0.0)
+"
+
+[sub_resource type="GDScript" id="GDScript_6431r"]
+resource_name = "magnetism_ability"
+script/source = "extends Ability
+
+@export_range(0.0, 100.0)
+var magnetism_power : float = 10.0
+
+@onready 
+var _game_state: GameState = %GameState
+
+
+func _process(delta: float) -> void:
+	super(delta)
+	if not _active:
+		return
+	
+	var acceleration : Vector2 = \\
+		(_game_state.platform_rect.get_center() - _game_state.ball_position).normalized()*magnetism_power
+	var speed : float = _game_state.ball_velocity.length()
+	_game_state.ball_velocity = (_game_state.ball_velocity+acceleration).normalized()*speed
 "
 
 [sub_resource type="GDScript" id="GDScript_0skvr"]
@@ -293,10 +416,32 @@ func _process(delta: float) -> void:
 [node name="ArcanoidGame" type="Node"]
 
 [node name="Drawer" type="Node2D" parent="."]
+unique_name_in_owner = true
 script = SubResource("GDScript_vuba5")
 
 [node name="GameController" type="Node" parent="."]
+unique_name_in_owner = true
 script = SubResource("GDScript_ypwq7")
+
+[node name="SlowtimeAbility" type="Node" parent="GameController"]
+script = SubResource("GDScript_khgdo")
+time_capacity = 0.3
+time_remains_recovery_scale = 0.25
+
+[node name="BallTrajectroryAbility" type="Node" parent="GameController"]
+script = SubResource("GDScript_jnwm8")
+time_remains_recovery_scale = 0.25
+
+[node name="PlatformAccelerationAbility" type="Node" parent="GameController"]
+script = SubResource("GDScript_col8f")
+acceleration_value = 2.0
+time_remains_recovery_scale = 0.25
+
+[node name="PlatformExtensionAbility" type="Node" parent="GameController"]
+script = SubResource("GDScript_1clpx")
+
+[node name="MagnetismAbility" type="Node" parent="GameController"]
+script = SubResource("GDScript_6431r")
 
 [node name="GameState" type="Node" parent="."]
 unique_name_in_owner = true
@@ -355,4 +500,6 @@ script = SubResource("GDScript_4yrex")
 unique_name_in_owner = true
 layout_mode = 1
 
+[connection signal="draw" from="Drawer" to="GameController" method="_on_drawer_draw"]
+[connection signal="draw" from="Drawer" to="GameController/BallTrajectroryAbility" method="_on_drawer_draw"]
 [connection signal="start_button_pressed" from="GUI/Control/GameStartingUI" to="GameController" method="_on_game_starging_ui_start_button_pressed"]
