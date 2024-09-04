@@ -49,11 +49,9 @@ func _ready() -> void:
 
 
 func _on_state_game_starting() -> void:
-	const PLATFORM_GAP : float = 100.0
-	
 	_game_state.platform_rect.position = Vector2(
 		_game_state.playing_area_rect.position.x+_game_state.playing_area_rect.size.x/2.0 -_game_state.platform_rect.size.x/2.0, 
-		_game_state.playing_area_rect.end.y-PLATFORM_GAP)
+		_game_state.playing_area_rect.end.y-_game_state.platform_height-_game_state.platform_rect.size.y)
 	
 	_place_ball_to_launch_position()
 	_spawn_blocks_layer()
@@ -209,12 +207,17 @@ func _spawn_blocks_layer() -> void:
 	
 	var spawned_columns : Array[int] = []
 	var spawn_count : int = min(_game_state.blocks_spawn_count, _game_state.blocks_columns)
+	var x_offset : float = (_game_state.playing_area_rect.size.x - \\
+			(_game_state.block_size.x+_game_state.blocks_columns_gap)*_game_state.blocks_columns)/2.0
+	
 	for i:int in spawn_count:
 		var column : int = randi()%_game_state.blocks_columns
 		while column in spawned_columns: column = randi()%_game_state.blocks_columns
-		
+		spawned_columns.append(column)
 		var new_block : Rect2 = Rect2(
-			_game_state.playing_area_rect.position + Vector2(_game_state.block_size.x+_game_state.blocks_columns_gap, 0.0)*column,
+			_game_state.playing_area_rect.position + \\
+				Vector2(_game_state.block_size.x+_game_state.blocks_columns_gap, 0.0)*column + \\
+				Vector2(x_offset, 0.0),
 			_game_state.block_size
 		)
 		
@@ -250,7 +253,14 @@ text = "START"
 [node name="GameState" type="Node" parent="."]
 unique_name_in_owner = true
 script = ExtResource("3_6rb05")
+initial_ball_radius = 5.0
 initial_ball_speed = 500.0
+initial_platform_size = Vector2(80, 10)
 initial_platform_speed = 400.0
+platform_height = 10.0
+block_size = Vector2(50, 20)
+block_rows_gap = 2.0
+blocks_columns_gap = 2.0
+initial_block_spawn_amount = 3
 
 [connection signal="pressed" from="StartButton" to="GameController" method="_on_start_button_pressed"]

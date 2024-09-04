@@ -45,6 +45,9 @@ var block_rows_gap : float = 4.0
 @export_range(0.0, 100.0)
 var blocks_columns_gap : float = 4.0
 
+@export_range(1, 1000)
+var initial_block_spawn_amount : int = 1
+
 @export_subgroup("Draw")
 @export_range(1.0, 10.0)
 var block_draw_width : float = 2.0
@@ -81,4 +84,4 @@ func _enter_tree() -> void:
 	playing_area_rect = Rect2(Vector2.ZERO, get_tree().root.size)
 	
 	blocks_columns = playing_area_rect.size.x / (block_size.x + blocks_columns_gap)
-	blocks_spawn_count = 1
+	blocks_spawn_count = initial_block_spawn_amount
