@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3 uid="uid://bixm1xmwh4h83"]
+[gd_scene load_steps=15 format=3 uid="uid://bixm1xmwh4h83"]
 
 [ext_resource type="Theme" uid="uid://dmce53ilrrlem" path="res://main-theme.tres" id="2_665qb"]
 [ext_resource type="Script" path="res://scripts/GameState.gd" id="3_6rb05"]
@@ -450,6 +450,10 @@ func _process(delta: float) -> void:
 	text = \"Score: %d\" % _game_state.score
 "
 
+[sub_resource type="Environment" id="Environment_a6df3"]
+background_mode = 3
+glow_enabled = true
+
 [node name="ArcanoidGame" type="Node"]
 
 [node name="Drawer" type="Node2D" parent="."]
@@ -538,6 +542,9 @@ script = SubResource("GDScript_4yrex")
 [node name="GameStartingUI" parent="GUI/Control" instance=ExtResource("3_ricfi")]
 unique_name_in_owner = true
 layout_mode = 1
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_a6df3")
 
 [connection signal="draw" from="Drawer" to="GameController" method="_on_drawer_draw"]
 [connection signal="draw" from="Drawer" to="GameController/BallTrajectroryAbility" method="_on_drawer_draw"]
