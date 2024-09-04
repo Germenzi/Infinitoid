@@ -8,3 +8,4 @@ script = ExtResource("1_ekt0c")
 ability_name = "Platform extension"
 ability_texture = ExtResource("1_7mvqu")
 ability_type = 3
+description = "Makes platform longer"

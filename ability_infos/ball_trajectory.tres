@@ -8,3 +8,4 @@ script = ExtResource("1_2ddut")
 ability_name = "Show ball trajectory"
 ability_texture = ExtResource("1_2qujk")
 ability_type = 1
+description = "Shows ball's trajectory"

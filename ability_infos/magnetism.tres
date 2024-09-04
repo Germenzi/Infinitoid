@@ -8,3 +8,4 @@ script = ExtResource("1_bg6kw")
 ability_name = "Magnetism"
 ability_texture = ExtResource("1_ui5lu")
 ability_type = 4
+description = "Attarcts ball to the platform's center. Ball speed won't be affected."

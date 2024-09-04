@@ -11,3 +11,7 @@ var ability_texture : Texture
 
 @export
 var ability_type : GameAbilitiesNamespace.Types
+
+
+@export_multiline
+var description : String = ""

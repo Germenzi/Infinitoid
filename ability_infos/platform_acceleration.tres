@@ -8,3 +8,4 @@ script = ExtResource("1_51xe3")
 ability_name = "Platform accelerating"
 ability_texture = ExtResource("1_0ytor")
 ability_type = 2
+description = "Speeds up platform"

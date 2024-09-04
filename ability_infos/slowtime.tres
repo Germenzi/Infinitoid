@@ -8,3 +8,4 @@ script = ExtResource("1_ygq1e")
 ability_name = "Slowing time"
 ability_texture = ExtResource("1_xviy4")
 ability_type = 0
+description = "Slows time"

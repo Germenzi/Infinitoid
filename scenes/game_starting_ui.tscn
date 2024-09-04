@@ -1,4 +1,4 @@
-[gd_scene load_steps=6 format=3 uid="uid://dj4cqaqhhkqus"]
+[gd_scene load_steps=7 format=3 uid="uid://dj4cqaqhhkqus"]
 
 [ext_resource type="Theme" uid="uid://dmce53ilrrlem" path="res://main-theme.tres" id="1_ak752"]
 
@@ -49,6 +49,7 @@ func _input(event: InputEvent) -> void:
 			_focused_ability = (_focused_ability+1)%get_child_count()
 		get_children().map(func(v:AbilityListEntry): v.set_mark_as_selecting(false))
 		(get_child(_focused_ability) as AbilityListEntry).set_mark_as_selecting(true)
+		(%DescriptionLabel as Label).text = (get_child(_focused_ability) as AbilityListEntry).ability_info.description
 	
 	if event.is_action_pressed(\"ability_selecting_prev\") and _is_selecting_ability:
 		if _focused_ability == -1:
@@ -57,6 +58,7 @@ func _input(event: InputEvent) -> void:
 			_focused_ability = ((_focused_ability-1) + get_child_count()) % get_child_count()
 		get_children().map(func(v:AbilityListEntry): v.set_mark_as_selecting(false))
 		(get_child(_focused_ability) as AbilityListEntry).set_mark_as_selecting(true)
+		(%DescriptionLabel as Label).text = (get_child(_focused_ability) as AbilityListEntry).ability_info.description
 	
 	if event.is_action_pressed(\"platform_launch_ball\") and _is_selecting_ability:
 		if _focused_ability != -1:
@@ -76,6 +78,7 @@ func _on_start_button_focus_entered() -> void:
 	_is_selecting_ability = false
 	(get_child(_focused_ability) as AbilityListEntry).set_mark_as_selecting(false)
 	_focused_ability = -1
+	(%DescriptionLabel as Label).text = \"\"
 
 
 func _on_start_button_focus_exited() -> void:
@@ -89,6 +92,9 @@ func _on_start_button_pressed() -> void:
 	
 	start_button_pressed.emit((get_child(_selected_ability) as AbilityListEntry).ability_info.ability_type)
 "
+
+[sub_resource type="LabelSettings" id="LabelSettings_e75fn"]
+font_size = 20
 
 [sub_resource type="GDScript" id="GDScript_27bs7"]
 resource_name = "start_button"
@@ -133,7 +139,7 @@ grow_vertical = 2
 theme_override_constants/separation = 50
 alignment = 1
 
-[node name="Label" type="Label" parent="VBoxContainer"]
+[node name="ChooseAbilityLabel" type="Label" parent="VBoxContainer"]
 layout_mode = 2
 text = "Choose boosting ability"
 label_settings = SubResource("LabelSettings_5ioai")
@@ -145,6 +151,13 @@ layout_mode = 2
 theme_override_constants/separation = 20
 alignment = 1
 script = SubResource("GDScript_qi165")
+
+[node name="DescriptionLabel" type="Label" parent="VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "    "
+label_settings = SubResource("LabelSettings_e75fn")
+horizontal_alignment = 1
 
 [node name="StartButton" type="Button" parent="VBoxContainer"]
 unique_name_in_owner = true

@@ -192,16 +192,16 @@ func _process_controlling_ball(delta:float) -> void:
 		elif  _game_state.ball_position.x >= _game_state.playing_area_rect.end.x:
 			_game_state.ball_position.x = _game_state.playing_area_rect.end.x - _game_state.ball_radius - 4.0
 			_game_state.ball_velocity.x *= -1
+		
 		if _game_state.ball_position.y <= _game_state.playing_area_rect.position.y:
 			_game_state.ball_velocity.y *= -1
 			_game_state.ball_position.y = _game_state.playing_area_rect.position.y + _game_state.ball_radius + 4.0
 		elif _game_state.ball_position.y >= _game_state.playing_area_rect.end.y:
-			_game_state.ball_velocity.y *= -1
-			_game_state.ball_position.y = _game_state.playing_area_rect.position.y - _game_state.ball_radius - 4.0
+			_on_ball_falled()
 		print(\"TRUTEN\")
 
 func _place_ball_to_launch_position() -> void:
-	const BALL_PLATFORM_GAP : float = 3.0
+	const BALL_PLATFORM_GAP : float = 2.0
 	
 	_game_state.ball_position = _game_state.platform_rect.position + \\
 		Vector2(_game_state.platform_rect.size.x*randf(), -_game_state.ball_radius-BALL_PLATFORM_GAP)
