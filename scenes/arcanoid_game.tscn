@@ -108,31 +108,29 @@ func _process_controlling_ball(delta:float) -> void:
 	var banned_rect_side : Array[int] = [] # rect idx, side idx, group idx
 	
 	var collide_group : Callable = func(rect_group:Array[Rect2], group_idx:int, banned_rect:Array, frame_time:float):
-		var earliest_collision : Array = []
+		var earliest_collision := ArcanoidGeometry.BallCollisionResult.new(false, 0, 0)
 		var collision_rect : int
 		for i:int in len(rect_group):
 			var rect : Rect2 = rect_group[i]
-			var ccd_res : Array = ArcanoidGeometry.ccd_circle_box(
+			var ccd_res := ArcanoidGeometry.ccd_circle_box(
 				_game_state.ball_position, 
 				_game_state.ball_position+_game_state.ball_velocity*delta,
 				_game_state.ball_radius,
 				rect, [banned_rect[1]] if 
 					(not banned_rect.is_empty() and i == banned_rect[0] and group_idx == banned_rect[2]) else []) 
 			
-			if not ccd_res[0]: continue
+			if not ccd_res.is_collision_detected: continue
 			
-			if 0.0 <= ccd_res[1] and ccd_res[1] <= (1.0-frame_time):
-				if earliest_collision.is_empty() or ccd_res[1] < earliest_collision[1]:
+			if 0.0 <= ccd_res.collision_time and ccd_res.collision_time <= (1.0-frame_time):
+				if not earliest_collision.is_collision_detected or ccd_res.collision_time < earliest_collision.collision_time:
 					earliest_collision = ccd_res
 					collision_rect = i
 		
-		if earliest_collision.is_empty(): 
-			earliest_collision = [false, 0.0, 1]
 		return [earliest_collision, collision_rect]
 	
 	
 	while true:
-		var earliest_collision : Array = []
+		var earliest_collision := ArcanoidGeometry.BallCollisionResult.new(false, 0, 0)
 		var collision_rect : int
 		var collision_type : BallCollisionTypes
 		
@@ -140,48 +138,48 @@ func _process_controlling_ball(delta:float) -> void:
 		var collsion_with_platform : Array = collide_group.call([platform_rect] as Array[Rect2], BallCollisionTypes.PLATFORM, banned_rect_side, frametime)
 		var collision_with_blocks : Array = collide_group.call(_game_state.blocks as Array[Rect2], BallCollisionTypes.BLOCK, banned_rect_side, frametime)
 		
-		if collision_with_borders[0][0]:
+		if collision_with_borders[0].is_collision_detected:
 			earliest_collision = collision_with_borders[0]
 			collision_rect = collision_with_borders[1]
 			collision_type = BallCollisionTypes.BORDER
 		
-		if collsion_with_platform[0][0] and (earliest_collision.is_empty() or collsion_with_platform[0][1] < earliest_collision[1]):
+		if collsion_with_platform[0].is_collision_detected and (not earliest_collision.is_collision_detected or collsion_with_platform[0].collision_time < earliest_collision.collision_time):
 			earliest_collision = collsion_with_platform[0]
 			collision_rect = collsion_with_platform[1]
 			collision_type = BallCollisionTypes.PLATFORM
 		
-		if collision_with_blocks[0][0] and (earliest_collision.is_empty() or collision_with_blocks[0][1] < earliest_collision[1]):
+		if collision_with_blocks[0].is_collision_detected and (not earliest_collision.is_collision_detected or collision_with_blocks[0].collision_time < earliest_collision.collision_time):
 			earliest_collision = collision_with_blocks[0]
 			collision_rect = collision_with_blocks[1]
 			collision_type = BallCollisionTypes.BLOCK
 		
-		if earliest_collision.is_empty():
+		if not earliest_collision.is_collision_detected:
 			_game_state.ball_position += _game_state.ball_velocity*delta*(1.0-frametime)
 			break
 		
-		_game_state.ball_position += _game_state.ball_velocity*delta*earliest_collision[1]
-		frametime += earliest_collision[1]
+		_game_state.ball_position += _game_state.ball_velocity*delta*earliest_collision.collision_time
+		frametime += earliest_collision.collision_time
 		
 		match collision_type:
 			BallCollisionTypes.BORDER:
-				if earliest_collision[2] == SIDE_BOTTOM:
+				if earliest_collision.collided_rect_side == SIDE_BOTTOM:
 					_on_ball_falled()
 					return
 				
-				if (earliest_collision[2] == SIDE_TOP or earliest_collision[2] == SIDE_BOTTOM):
+				if (earliest_collision.collided_rect_side == SIDE_TOP or earliest_collision.collided_rect_side == SIDE_BOTTOM):
 					_game_state.ball_velocity.y *= -1
 				else:
 					_game_state.ball_velocity.x *= -1
-				banned_rect_side = [collision_rect, earliest_collision[2], BallCollisionTypes.BORDER]
+				banned_rect_side = [collision_rect, earliest_collision.collided_rect_side, BallCollisionTypes.BORDER]
 				
 			BallCollisionTypes.PLATFORM:
 				_game_state.ball_velocity = (_game_state.ball_position-_game_state.platform_rect.get_center()).normalized() * _game_state.ball_velocity.length()
 				_on_ball_platform_collision.call_deferred()
-				banned_rect_side = [collision_rect, earliest_collision[2], BallCollisionTypes.PLATFORM]
+				banned_rect_side = [collision_rect, earliest_collision.collided_rect_side, BallCollisionTypes.PLATFORM]
 				
 			BallCollisionTypes.BLOCK:
 				_game_state.blocks.remove_at(collision_rect)
-				if (earliest_collision[2] == SIDE_TOP or earliest_collision[2] == SIDE_BOTTOM):
+				if (earliest_collision.collided_rect_side == SIDE_TOP or earliest_collision.collided_rect_side == SIDE_BOTTOM):
 					_game_state.ball_velocity.y *= -1
 				else:
 					_game_state.ball_velocity.x *= -1
