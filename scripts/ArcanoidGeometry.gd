@@ -16,36 +16,36 @@ class BallCollisionResult:
 class RectGroupBannedSides:
 	extends RefCounted
 	
-	var _banned : Dictionary = {} # rect idx : banned sides
+	var _banned : Dictionary = {} # arcanoid rect : banned sides
 	
-	func get_banned_sides(idx:int) -> Array[int]:
+	func get_banned_sides(rect:ArcanoidRect) -> Array[int]:
 		var res : Array[int] = [] # for type-safety only
-		for i:int in _banned.get(idx, []):
+		for i:int in _banned.get(rect, []):
 			res.append(i)
 		return res
 	
-	func ban_side(rect_idx:int, side:int) -> void:
-		if not _banned.has(rect_idx):
-			_banned[rect_idx] = []
-		(_banned[rect_idx] as Array[int]).append(side)
+	func ban_side(rect:ArcanoidRect, side:int) -> void:
+		if not _banned.has(rect):
+			_banned[rect] = []
+		(_banned[rect] as Array[int]).append(side)
 
 
 class BallCollisionResultGroup:
 	extends BallCollisionResult
 	
-	var collision_rect_index : int
+	var collision_rect : ArcanoidRect
 	
-	func _init(p_time:float, p_rect_side:int, p_rect_idx:int) -> void:
+	func _init(p_time:float, p_rect_side:int, p_rect:ArcanoidRect) -> void:
 		super(p_time, p_rect_side)
-		collision_rect_index = p_rect_idx
+		collision_rect = p_rect
 
 
 ##CCD - continuous collision detection. Checking collisions only by rect sides 
 ##(if ball is inside rect, no collision detected) [br]
-static func ccd_circle_box(circle_begin:Vector2, circle_end:Vector2, circle_radius:float, rect:Rect2, banned_sides:Array=[]) -> BallCollisionResult:
+static func ccd_circle_box(circle_begin:Vector2, circle_end:Vector2, circle_radius:float, rect:ArcanoidRect, banned_sides:Array=[]) -> BallCollisionResult:
 	var ball_aabb : Rect2 = Rect2(circle_begin, circle_end-circle_begin).abs()
 	
-	var rect_ball_collide : Rect2 = rect.abs().grow(circle_radius)
+	var rect_ball_collide : Rect2 = rect.rect.abs().grow(circle_radius)
 	
 	if not ball_aabb.intersects(rect_ball_collide):
 		return null
@@ -81,19 +81,18 @@ static func ccd_circle_box(circle_begin:Vector2, circle_end:Vector2, circle_radi
 
 
 static func ccd_circle_box_group(circle_begin:Vector2, circle_end:Vector2, 
-	circle_radius:float, rect_group:Array[Rect2], 
+	circle_radius:float, rect_group:Array[ArcanoidRect], 
 	banned:RectGroupBannedSides=RectGroupBannedSides.new()) -> BallCollisionResultGroup:
 	
 		var earliest_collision : ArcanoidGeometry.BallCollisionResultGroup = null
-		for i:int in len(rect_group):
-			var rect : Rect2 = rect_group[i]
+		for rect:ArcanoidRect in rect_group:
 			var ccd_res := ArcanoidGeometry.ccd_circle_box(
 				circle_begin, circle_end, circle_radius,
-				rect, banned.get_banned_sides(i)) 
+				rect, banned.get_banned_sides(rect)) 
 			
 			if ccd_res == null: continue
 			
 			if earliest_collision == null or ccd_res.collision_time < earliest_collision.collision_time:
-				earliest_collision = BallCollisionResultGroup.new(ccd_res.collision_time, ccd_res.collided_rect_side, i)
+				earliest_collision = BallCollisionResultGroup.new(ccd_res.collision_time, ccd_res.collided_rect_side, rect)
 		
 		return earliest_collision

@@ -83,15 +83,21 @@ var platform_color : Color = Color.GREEN
 
 var state_machine : StateMachine = StateMachine.new()
 
+var playing_area_ball_collide_rect : ArcanoidRect :
+	get:
+		return ArcanoidRect.new(Rect2(
+			Vector2.ZERO, playing_area_size
+		).grow(-ball_radius*2))
+
 var platform_speed : float
-var platform_rect : Rect2
+var platform_rect : ArcanoidRect
 
 var ball_velocity : Vector2 
 var ball_radius : float
 var ball_position : Vector2
 
 var blocks_columns : int
-var blocks : Array[Rect2] = []
+var blocks : Array[ArcanoidRect] = []
 var blocks_spawn_count : int
 
 var health : int
@@ -102,7 +108,7 @@ func _enter_tree() -> void:
 	ball_radius = initial_ball_radius
 	
 	platform_speed = initial_platform_speed
-	platform_rect = Rect2(Vector2.ZERO, initial_platform_size)
+	platform_rect = ArcanoidRect.new(Rect2(Vector2.ZERO, initial_platform_size))
 	
 	blocks_columns = playing_area_size.x / (block_size.x + blocks_columns_gap)
 	blocks_spawn_count = initial_block_spawn_amount
