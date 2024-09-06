@@ -1,10 +1,20 @@
-[gd_scene load_steps=18 format=3 uid="uid://bixm1xmwh4h83"]
+[gd_scene load_steps=19 format=3 uid="uid://bixm1xmwh4h83"]
 
 [ext_resource type="Theme" uid="uid://dmce53ilrrlem" path="res://main-theme.tres" id="2_665qb"]
 [ext_resource type="Script" path="res://scripts/GameState.gd" id="3_6rb05"]
 [ext_resource type="PackedScene" uid="uid://dj4cqaqhhkqus" path="res://scenes/game_starting_ui.tscn" id="3_ricfi"]
 [ext_resource type="PackedScene" uid="uid://6folc8h7iqa7" path="res://scenes/game_over_screen.tscn" id="4_47ygy"]
+[ext_resource type="PackedScene" uid="uid://bc0tcq4wxb8qa" path="res://scenes/level_completed_screen.tscn" id="5_3e7pe"]
 [ext_resource type="PackedScene" uid="uid://b1mwgw0sjehek" path="res://scenes/in_game_menu.tscn" id="5_6e5sj"]
+
+[sub_resource type="GDScript" id="GDScript_0ixw8"]
+resource_name = "main"
+script/source = "extends Node
+
+
+func _ready() -> void:
+	(%GameState as GameState).load_level_config(GlobalSettings.current_level)
+"
 
 [sub_resource type="GDScript" id="GDScript_vuba5"]
 resource_name = "drawer"
@@ -27,29 +37,30 @@ func _process(delta: float) -> void:
 
 
 func _draw() -> void:
-	draw_rect(Rect2(Vector2.ZERO, _game_state.playing_area_size), _game_state.playing_area_rect_color, false)
+	draw_rect(Rect2(Vector2.ZERO, GlobalSettings.game_config.playing_area_size), GlobalSettings.game_config.playing_area_rect_color, false)
 	
-	draw_line(Vector2(0, _game_state.blocks_deadline_height), 
-		Vector2(_game_state.playing_area_size.x, _game_state.blocks_deadline_height), 
-		_game_state.deadline_color, _game_state.block_draw_width, true)
+	if _game_state.new_blocks_spawning:
+		draw_line(Vector2(0, GlobalSettings.game_config.blocks_deadline_height), 
+			Vector2(GlobalSettings.game_config.playing_area_size.x, GlobalSettings.game_config.blocks_deadline_height), 
+			GlobalSettings.game_config.deadline_color, GlobalSettings.game_config.block_draw_width, true)
 	
 	draw_circle(_game_state.ball_position, 
-		_game_state.ball_radius-_game_state.ball_draw_width/2.0, 
-		_game_state.ball_color, false, _game_state.ball_draw_width, true)
+		_game_state.ball_radius-GlobalSettings.game_config.ball_draw_width/2.0, 
+		GlobalSettings.game_config.ball_color, false, GlobalSettings.game_config.ball_draw_width, true)
 	
-	draw_rect(_game_state.platform_rect.rect.grow(-_game_state.platform_draw_width/2.0), 
-	_game_state.platform_color, false, _game_state.platform_draw_width, false
-	)
+	draw_rect(_game_state.platform_rect.rect.grow(-GlobalSettings.game_config.platform_draw_width/2.0), 
+		GlobalSettings.game_config.platform_color, false, GlobalSettings.game_config.platform_draw_width, false)
 	
 	for block:ArcanoidBlock in _game_state.blocks:
-		draw_rect(block.rect.grow(-_game_state.block_draw_width/2.0), 
-		_game_state.blocks_colors[min(block.hp-1, len(_game_state.blocks_colors))], false, _game_state.block_draw_width, false
+		draw_rect(block.rect.grow(-GlobalSettings.game_config.block_draw_width/2.0), 
+		GlobalSettings.game_config.blocks_colors[min(block.hp-1, len(GlobalSettings.game_config.blocks_colors))], 
+		false, GlobalSettings.game_config.block_draw_width, false
 		)
 
 
 func set_window_scale(scale_factor:float) -> void:
-	var diff : Vector2 = _game_state.playing_area_size*scale.x - \\
-		_game_state.playing_area_size*scale_factor
+	var diff : Vector2 = GlobalSettings.game_config.playing_area_size*scale.x - \\
+		GlobalSettings.game_config.playing_area_size*scale_factor
 	
 	position += diff/2
 	scale = Vector2(scale_factor, scale_factor)
@@ -59,7 +70,7 @@ func _on_viewport_size_changed() -> void:
 	var old_scale_factor : float = scale.x
 	set_window_scale(1.0)
 	var viewport_center : Vector2 = get_tree().root.size / 2
-	var playing_area_center : Vector2 = position + _game_state.playing_area_size / 2.0
+	var playing_area_center : Vector2 = position + GlobalSettings.game_config.playing_area_size / 2.0
 	
 	var diff : Vector2 = viewport_center - playing_area_center
 	position += diff
@@ -101,11 +112,9 @@ func _ready() -> void:
 
 func _on_state_game_starting() -> void:
 	_game_state.platform_rect.rect.position = Vector2(
-		_game_state.playing_area_size.x/2.0 -_game_state.platform_rect.rect.size.x/2.0, 
-		_game_state.playing_area_size.y-_game_state.platform_height-_game_state.platform_rect.rect.size.y)
+		GlobalSettings.game_config.playing_area_size.x/2.0 -_game_state.platform_rect.rect.size.x/2.0, 
+		GlobalSettings.game_config.playing_area_size.y-GlobalSettings.game_config.platform_height-_game_state.platform_rect.rect.size.y)
 	_place_ball_to_launch_position()
-	for i:int in _game_state.initial_block_rows:
-		_spawn_blocks_layer()
 
 
 func _on_state_launching_ball() -> void:
@@ -118,11 +127,11 @@ func _on_state_controlling_ball() -> void:
 
 
 func _on_state_waiting_for_damage() -> void:
-	var old_color : Color = _game_state.playing_area_rect_color
+	var old_color : Color = GlobalSettings.game_config.playing_area_rect_color
 	var tween := create_tween()
-	tween.tween_property(_game_state, \"playing_area_rect_color\", 
+	tween.tween_property( GlobalSettings.game_config, \"playing_area_rect_color\", 
 		Color.RED, DAMAGE_TIME_AWATING*0.2)
-	tween.chain().tween_property(_game_state, \"playing_area_rect_color\",
+	tween.chain().tween_property( GlobalSettings.game_config, \"playing_area_rect_color\",
 		old_color, DAMAGE_TIME_AWATING*0.8)
 
 
@@ -225,20 +234,24 @@ func _check_collisions(delta:float) -> void:
 			_game_state.score += 1
 			banned_rects_sides = ArcanoidGeometry.RectGroupBannedSides.new()
 			banned_rects_sides.ban_side(earliest_collision.collision_rect, earliest_collision.collided_rect_side)
+			
+			if _game_state.blocks.is_empty():
+				_on_all_blocks_broken() 
 	
 	# hardcoded bugfix, when ball super rarely just ignore walls
-	if not Rect2(Vector2.ZERO, _game_state.playing_area_size).grow(-_game_state.ball_radius).has_point(_game_state.ball_position):
+	var bounds_rect : Rect2 = Rect2(Vector2.ZERO, GlobalSettings.game_config.playing_area_size)
+	if not bounds_rect.has_point(_game_state.ball_position):
 		if _game_state.ball_position.x <= 0.0:
 			_game_state.ball_position.x = 0.0 + _game_state.ball_radius + 4.0
 			_game_state.ball_velocity.x *= -1
-		elif  _game_state.ball_position.x >= _game_state.playing_area_size.x:
-			_game_state.ball_position.x = _game_state.playing_area_size.x - _game_state.ball_radius - 4.0
+		elif  _game_state.ball_position.x >= GlobalSettings.game_config.playing_area_size.x:
+			_game_state.ball_position.x = GlobalSettings.game_config.playing_area_size.x - _game_state.ball_radius - 4.0
 			_game_state.ball_velocity.x *= -1
 		
 		if _game_state.ball_position.y <= 0.0:
 			_game_state.ball_velocity.y *= -1
 			_game_state.ball_position.y = 0.0 + _game_state.ball_radius + 4.0
-		elif _game_state.ball_position.y >= _game_state.playing_area_size.y:
+		elif _game_state.ball_position.y >= GlobalSettings.game_config.playing_area_size.y:
 			_on_ball_falled()
 		print(\"TRUTEN\")
 
@@ -254,8 +267,8 @@ func _handle_platform_movement(delta:float) -> void:
 	var platform_speed_input : float = Input.get_axis(\"platform_left\", \"platform_right\")
 	
 	_game_state.platform_rect.rect.position.x += _game_state.platform_speed*delta*platform_speed_input
-	if _game_state.platform_rect.rect.end.x > _game_state.playing_area_size.x:
-		_game_state.platform_rect.rect.position.x = _game_state.playing_area_size.x-_game_state.platform_rect.rect.size.x
+	if _game_state.platform_rect.rect.end.x > GlobalSettings.game_config.playing_area_size.x:
+		_game_state.platform_rect.rect.position.x = GlobalSettings.game_config.playing_area_size.x-_game_state.platform_rect.rect.size.x
 	elif _game_state.platform_rect.rect.position.x < 0.0:
 		_game_state.platform_rect.rect.position.x = 0.0
 
@@ -263,7 +276,7 @@ func _handle_platform_movement(delta:float) -> void:
 
 func _check_blocks_deadline() -> bool:
 	for rect:ArcanoidRect in _game_state.blocks:
-		if rect.rect.end.y > _game_state.blocks_deadline_height:
+		if rect.rect.end.y > GlobalSettings.game_config.blocks_deadline_height:
 			return true
 	
 	return false
@@ -271,20 +284,18 @@ func _check_blocks_deadline() -> bool:
 
 func _spawn_blocks_layer() -> void:
 	for rect:ArcanoidRect in _game_state.blocks:
-		rect.rect.position.y += _game_state.block_size.y + _game_state.block_rows_gap
+		rect.rect.position.y += GlobalSettings.game_config.block_size.y + GlobalSettings.game_config.block_rows_gap
 	
 	var spawned_columns : Array[int] = []
-	var spawn_count : int = min(_game_state.blocks_spawn_count, _game_state.blocks_columns)
-	var x_offset : float = (_game_state.playing_area_size.x - \\
-			(_game_state.block_size.x+_game_state.blocks_columns_gap)*_game_state.blocks_columns)/2.0
+	var spawn_count : int = min(_game_state.blocks_spawn_count, GlobalSettings.game_config.block_column_count)
 	
 	for i:int in spawn_count:
-		var column : int = randi()%_game_state.blocks_columns
-		while column in spawned_columns: column = randi()%_game_state.blocks_columns
+		var column : int = randi()%GlobalSettings.game_config.block_column_count
+		while column in spawned_columns: column = randi()%GlobalSettings.game_config.block_column_count
 		spawned_columns.append(column)
 		var new_block := ArcanoidBlock.new(
-			Rect2(Vector2(_game_state.block_size.x+_game_state.blocks_columns_gap, 0.0)*column + \\
-				Vector2(x_offset, _game_state.top_row_gap), _game_state.block_size), 6)
+			Rect2(Vector2(GlobalSettings.game_config.block_size.x+GlobalSettings.game_config.blocks_columns_gap, 0.0)*column + \\
+				Vector2(GlobalSettings.game_config.first_row_offset, GlobalSettings.game_config.top_row_gap), GlobalSettings.game_config.block_size), 6)
 		_game_state.blocks.append(new_block)
 
 
@@ -305,14 +316,21 @@ func _on_ball_falled() -> void:
 	_game_state.state_machine.go_state(GameState.LAUNCHING_BALL_STATE)
 
 
+func _on_all_blocks_broken() -> void:
+	if not _game_state.new_blocks_spawning:
+		(%Screens as TabContainer).current_tab = \\
+			(%Screens as TabContainer).get_tab_idx_from_control(%LevelCompletedScreen)
+		(%Screens as Control).show()
+		get_tree().paused = true
+
+
 func _on_blocks_reached_deadline() -> void:
 	_damage_reason = DamageReasons.DEADLINE_REACHED
 	if await _do_damage():
 		return
 	
 	_game_state.blocks = []
-	for i:int in _game_state.initial_block_rows:
-		_spawn_blocks_layer()
+	_spawn_blocks_layer()
 	_game_state.state_machine.go_state(GameState.LAUNCHING_BALL_STATE)
 
 
@@ -360,7 +378,7 @@ func _on_drawer_draw() -> void:
 	
 	(%Drawer as CanvasItem).draw_rect(_game_state.platform_rect.rect.grow_side(SIDE_RIGHT,
 		-_game_state.platform_rect.rect.size.x*(1.0-chosen_ability.relative_balance)),
-		_game_state.platform_color)
+		GlobalSettings.game_config.platform_color)
 "
 
 [sub_resource type="GDScript" id="GDScript_khgdo"]
@@ -402,7 +420,7 @@ func _on_drawer_draw() -> void:
 	
 	(%Drawer as CanvasItem).draw_line(_game_state.ball_position, 
 		_game_state.ball_position+_game_state.ball_velocity, 
-		_game_state.ball_color, 1.0, true)
+		GlobalSettings.game_config.ball_color, 1.0, true)
 "
 
 [sub_resource type="GDScript" id="GDScript_col8f"]
@@ -492,17 +510,19 @@ func _input(event: InputEvent) -> void:
 	if event.is_action_pressed(\"pasue_game\"):
 		get_tree().paused = not get_tree().paused
 		(%InGameMenu as Control).visible = not (%InGameMenu as Control).visible
-"
 
-[sub_resource type="GDScript" id="GDScript_0skvr"]
-resource_name = "speed_label"
-script/source = "extends Label
 
-@onready
-var _game_state : GameState = %GameState
+func _on_level_completed_screen_next_level_button_pressed() -> void:
+	pass # Replace with function body.
 
-func _process(delta: float) -> void:
-	text = \"Ball speed: %.0f\" % _game_state.ball_velocity.length()
+
+func _on_level_completed_screen_quit_game_button_pressed() -> void:
+	get_tree().quit()
+
+
+func _on_level_completed_screen_main_menu_button_pressed() -> void:
+	get_tree().paused = false
+	get_tree().change_scene_to_file(ScenesNamespace.MAIN_MENU_SCENE_PATH)
 "
 
 [sub_resource type="GDScript" id="GDScript_fgexy"]
@@ -513,7 +533,7 @@ script/source = "extends Label
 var _game_state : GameState = %GameState
 
 func _process(delta: float) -> void:
-	text = \"Health: %d/%d\" % [_game_state.health, _game_state.maximum_health]
+	text = \"Health: %d/%d\" % [_game_state.health, GlobalSettings.game_config.maximum_health]
 "
 
 [sub_resource type="GDScript" id="GDScript_4yrex"]
@@ -541,6 +561,7 @@ glow_bloom = 0.39
 glow_blend_mode = 0
 
 [node name="ArcanoidGame" type="Node"]
+script = SubResource("GDScript_0ixw8")
 
 [node name="Drawer" type="Node2D" parent="."]
 unique_name_in_owner = true
@@ -574,19 +595,6 @@ magnetism_power = 20.0
 [node name="GameState" type="Node" parent="."]
 unique_name_in_owner = true
 script = ExtResource("3_6rb05")
-speed_factor = 1.02
-playing_area_size = Vector2(800, 600)
-initial_ball_radius = 7.0
-initial_ball_speed = 400.0
-initial_platform_size = Vector2(80, 10)
-initial_platform_speed = 400.0
-platform_height = 10.0
-block_size = Vector2(40, 20)
-block_rows_gap = 1.0
-blocks_columns_gap = 1.0
-initial_block_spawn_amount = 2
-initial_block_rows = 1
-top_row_gap = 5.0
 
 [node name="GUI" type="CanvasLayer" parent="."]
 process_mode = 3
@@ -602,12 +610,6 @@ grow_horizontal = 2
 grow_vertical = 2
 theme = ExtResource("2_665qb")
 
-[node name="SpeedLabel" type="Label" parent="GUI/HUD"]
-layout_mode = 0
-offset_right = 95.0
-offset_bottom = 39.0
-script = SubResource("GDScript_0skvr")
-
 [node name="HealthLabel" type="Label" parent="GUI/HUD"]
 layout_mode = 1
 anchors_preset = 1
@@ -616,6 +618,7 @@ anchor_right = 1.0
 offset_left = -40.0
 offset_bottom = 23.0
 grow_horizontal = 0
+theme_override_font_sizes/font_size = 32
 script = SubResource("GDScript_fgexy")
 
 [node name="ScoreLabel" type="Label" parent="GUI/HUD"]
@@ -627,6 +630,7 @@ offset_left = -20.0
 offset_right = 20.0
 offset_bottom = 23.0
 grow_horizontal = 2
+theme_override_font_sizes/font_size = 32
 script = SubResource("GDScript_4yrex")
 
 [node name="Screens" type="TabContainer" parent="GUI"]
@@ -637,20 +641,26 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-current_tab = 0
+current_tab = 1
 tabs_visible = false
 
 [node name="GameStartingUI" parent="GUI/Screens" instance=ExtResource("3_ricfi")]
 unique_name_in_owner = true
 process_mode = 1
+visible = false
 layout_mode = 2
 metadata/_tab_index = 0
 
 [node name="GameOverScreen" parent="GUI/Screens" instance=ExtResource("4_47ygy")]
 unique_name_in_owner = true
-visible = false
 layout_mode = 2
 metadata/_tab_index = 1
+
+[node name="LevelCompletedScreen" parent="GUI/Screens" instance=ExtResource("5_3e7pe")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+metadata/_tab_index = 2
 
 [node name="InGameMenu" parent="GUI" instance=ExtResource("5_6e5sj")]
 unique_name_in_owner = true
@@ -666,4 +676,7 @@ environment = SubResource("Environment_a6df3")
 [connection signal="main_menu_button_pressed" from="GUI/Screens/GameOverScreen" to="GUI" method="_on_game_over_screen_main_menu_button_pressed"]
 [connection signal="quit_game_button_pressed" from="GUI/Screens/GameOverScreen" to="GUI" method="_on_game_over_screen_quit_game_button_pressed"]
 [connection signal="restart_button_pressed" from="GUI/Screens/GameOverScreen" to="GUI" method="_on_game_over_screen_restart_button_pressed"]
+[connection signal="main_menu_button_pressed" from="GUI/Screens/LevelCompletedScreen" to="GUI" method="_on_level_completed_screen_main_menu_button_pressed"]
+[connection signal="next_level_button_pressed" from="GUI/Screens/LevelCompletedScreen" to="GUI" method="_on_level_completed_screen_next_level_button_pressed"]
+[connection signal="quit_game_button_pressed" from="GUI/Screens/LevelCompletedScreen" to="GUI" method="_on_level_completed_screen_quit_game_button_pressed"]
 [connection signal="new_scale_setted" from="GUI/InGameMenu" to="GUI" method="_on_in_game_menu_new_scale_setted"]

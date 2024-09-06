@@ -7,98 +7,15 @@ const LAUNCHING_BALL_STATE : StringName = &"LAUNCHING_BALL_STATE"
 const CONTROLLING_BALL_STATE : StringName = &"CONTROLLING_BALL_STATE"
 const WAITING_FOR_DAMAGE_STATE : StringName = &"WAITING_FOR_DAMAGE_STATE"
 
-@export_range(1.0, 1.5)
 var speed_factor : float = 1.05
-
-@export_range(1, 10000)
-var maximum_health : int = 3
-
-@export
 var new_blocks_spawning : bool = true
-
-@export
-var playing_area_size : Vector2 = Vector2(800, 500)
-
-@export
-var playing_area_rect_color : Color = Color.WHITE
-
-@export_category("Ball")
-@export_range(2.0, 200.0)
-var initial_ball_radius : float = 15.0
-
-@export_range(10.0, 10_000.0)
-var initial_ball_speed : float = 200.0
-
-@export_subgroup("Draw")
-@export_range(1.0, 10.0)
-var ball_draw_width : float = 2.0
-
-@export
-var ball_color : Color = Color.GREEN
-
-
-@export_category("Platform")
-@export
-var initial_platform_size : Vector2 = Vector2(100.0, 20.0)
-
-@export_range(10.0, 1_000.0)
-var initial_platform_speed : float = 200.0
-
-@export_range(0.0, 1000.0)
-var platform_height : float = 100.0
-
-@export_subgroup("Draw")
-@export_range(1.0, 10.0)
-var platform_draw_width : float = 2.0
-
-@export_category("Block")
-@export
-var block_size : Vector2 = Vector2(100.0, 20.0)
-
-@export_range(0.0, 100.0)
-var block_rows_gap : float = 4.0
-
-@export_range(0.0, 100.0)
-var blocks_columns_gap : float = 4.0
-
-@export_range(1, 1000)
-var initial_block_spawn_amount : int = 1
-
-@export_range(1, 100)
-var initial_block_rows : int = 5
-
-@export_range(0.0, 10000.0)
-var blocks_deadline_height : float = 400.0
-
-@export_range(0.0, 100.0)
-var top_row_gap : float = 50.0
-
-@export_subgroup("Draw")
-@export_range(1.0, 10.0)
-var block_draw_width : float = 2.0
-
-@export
-var deadline_color : Color = Color(Color.RED, 0.3)
-
-@export
-var blocks_colors : Array[Color] = [
-	Color.RED, # 1 hp
-	Color.YELLOW, # 2 hp
-	Color.CHOCOLATE, # 3 hp
-	Color.CORAL, # 4 hp
-	Color.CORNFLOWER_BLUE, # 5 hp
-	Color.AZURE, # 6 hp
-]
-
-@export
-var platform_color : Color = Color.GREEN
 
 var state_machine : StateMachine = StateMachine.new()
 
 var playing_area_ball_collide_rect : ArcanoidRect :
 	get:
 		return ArcanoidRect.new(Rect2(
-			Vector2.ZERO, playing_area_size
+			Vector2.ZERO, GlobalSettings.game_config.playing_area_size
 		).grow(-ball_radius*2))
 
 var platform_speed : float
@@ -108,22 +25,40 @@ var ball_velocity : Vector2
 var ball_radius : float
 var ball_position : Vector2
 
-var blocks_columns : int
 var blocks : Array[ArcanoidBlock] = []
 var blocks_spawn_count : int
 
 var health : int
 var score : int
 
+
+func load_level_config(level_config:LevelConfig) -> void:
+	platform_speed = level_config.initial_platform_speed
+	ball_velocity = Vector2.RIGHT * level_config.initial_ball_speed
+	blocks_spawn_count = level_config.initial_block_spawn_amount
+	new_blocks_spawning = level_config.new_blocks_spawning
+	speed_factor = level_config.speed_factor
+	
+	var csv_lines := level_config.initial_level_structure.split("\n")
+	print(csv_lines)
+	for i:int in len(csv_lines):
+		var blocks_hp : Array[int] = []
+		blocks_hp.append_array(Array(csv_lines[i].split(",")).map(func(x:String): return int(x)))
+		print(blocks_hp)
+		
+		for j:int in min(GlobalSettings.game_config.block_column_count, len(blocks_hp)):
+			if blocks_hp[j] == 0:
+				continue
+			blocks.append(ArcanoidBlock.new(
+				Rect2(
+				Vector2(GlobalSettings.game_config.first_row_offset, GlobalSettings.game_config.top_row_gap) + \
+					(GlobalSettings.game_config.block_size+Vector2(GlobalSettings.game_config.blocks_columns_gap, GlobalSettings.game_config.block_rows_gap))*Vector2(j, i), 
+				GlobalSettings.game_config.block_size), blocks_hp[j]))
+
+
+
 func _enter_tree() -> void:
-	ball_velocity = Vector2.RIGHT * initial_ball_speed
-	ball_radius = initial_ball_radius
-	
-	platform_speed = initial_platform_speed
-	platform_rect = ArcanoidRect.new(Rect2(Vector2.ZERO, initial_platform_size))
-	
-	blocks_columns = playing_area_size.x / (block_size.x + blocks_columns_gap)
-	blocks_spawn_count = initial_block_spawn_amount
-	
-	health = maximum_health
+	ball_radius = GlobalSettings.game_config.initial_ball_radius
+	platform_rect = ArcanoidRect.new(Rect2(Vector2.ZERO, GlobalSettings.game_config.initial_platform_size))
+	health = GlobalSettings.game_config.maximum_health
 	score = 0

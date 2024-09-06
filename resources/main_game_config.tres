@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="GameConfig" load_steps=2 format=3 uid="uid://dpn6ovu7na34s"]
+
+[ext_resource type="Script" path="res://scripts/GameConfig.gd" id="1_ihug8"]
+
+[resource]
+script = ExtResource("1_ihug8")
+maximum_health = 3
+playing_area_size = Vector2(800, 600)
+playing_area_rect_color = Color(1, 1, 1, 1)
+initial_ball_radius = 7.0
+ball_draw_width = 2.0
+ball_color = Color(0, 1, 0, 1)
+initial_platform_size = Vector2(80, 15)
+platform_height = 10.0
+platform_draw_width = 2.0
+block_size = Vector2(40, 20)
+block_rows_gap = 1.0
+blocks_columns_gap = 2.0
+blocks_deadline_height = 400.0
+top_row_gap = 10.0
+block_draw_width = 2.0
+deadline_color = Color(1, 0, 0, 0.3)
+blocks_colors = Array[Color]([Color(1, 0, 0, 1), Color(1, 1, 0, 1), Color(0.823529, 0.411765, 0.117647, 1), Color(1, 0.498039, 0.313726, 1), Color(0.392157, 0.584314, 0.929412, 1), Color(0.941176, 1, 1, 1)])
+platform_color = Color(0, 1, 0, 1)
