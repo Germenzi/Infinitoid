@@ -15,6 +15,9 @@ var speed_factor : float = 1.05
 var maximum_health : int = 3
 
 @export
+var new_blocks_spawning : bool = true
+
+@export
 var playing_area_size : Vector2 = Vector2(800, 500)
 
 @export
@@ -76,7 +79,17 @@ var top_row_gap : float = 50.0
 var block_draw_width : float = 2.0
 
 @export
-var block_color : Color = Color.RED
+var deadline_color : Color = Color(Color.RED, 0.3)
+
+@export
+var blocks_colors : Array[Color] = [
+	Color.RED, # 1 hp
+	Color.YELLOW, # 2 hp
+	Color.CHOCOLATE, # 3 hp
+	Color.CORAL, # 4 hp
+	Color.CORNFLOWER_BLUE, # 5 hp
+	Color.AZURE, # 6 hp
+]
 
 @export
 var platform_color : Color = Color.GREEN
@@ -97,7 +110,7 @@ var ball_radius : float
 var ball_position : Vector2
 
 var blocks_columns : int
-var blocks : Array[ArcanoidRect] = []
+var blocks : Array[ArcanoidBlock] = []
 var blocks_spawn_count : int
 
 var health : int

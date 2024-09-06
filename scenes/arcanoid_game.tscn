@@ -26,7 +26,7 @@ func _draw() -> void:
 	
 	draw_line(Vector2(0, _game_state.blocks_deadline_height), 
 		Vector2(_game_state.playing_area_size.x, _game_state.blocks_deadline_height), 
-		Color(_game_state.block_color, 0.3), _game_state.block_draw_width, true)
+		_game_state.deadline_color, _game_state.block_draw_width, true)
 	
 	draw_circle(_game_state.ball_position, 
 		_game_state.ball_radius-_game_state.ball_draw_width/2.0, 
@@ -36,9 +36,9 @@ func _draw() -> void:
 	_game_state.platform_color, false, _game_state.platform_draw_width, false
 	)
 	
-	for block:ArcanoidRect in _game_state.blocks:
+	for block:ArcanoidBlock in _game_state.blocks:
 		draw_rect(block.rect.grow(-_game_state.block_draw_width/2.0), 
-		_game_state.block_color, false, _game_state.block_draw_width, false
+		_game_state.blocks_colors[min(block.hp-1, len(_game_state.blocks_colors))], false, _game_state.block_draw_width, false
 		)
 
 func set_window_scale(scale_factor:float) -> void:
@@ -163,6 +163,11 @@ func _process_controlling_ball(delta:float) -> void:
 		if chosen_ability != null:
 				chosen_ability.deactivate()
 	
+	_check_collisions(delta)
+
+
+
+func _check_collisions(delta:float) -> void:
 	var playing_area_limiter_rect := _game_state.playing_area_ball_collide_rect
 	var platform_rect := _game_state.platform_rect
 	
@@ -172,7 +177,8 @@ func _process_controlling_ball(delta:float) -> void:
 	var frametime : float = 0.0
 	var banned_rects_sides := ArcanoidGeometry.RectGroupBannedSides.new()
 	while true:
-		var collisions_rects : Array[ArcanoidRect] =  _game_state.blocks.duplicate()
+		var collisions_rects : Array[ArcanoidRect] = [];
+		collisions_rects.append_array(_game_state.blocks.duplicate())
 		collisions_rects.append_array([playing_area_limiter_rect, platform_rect])
 		
 		var earliest_collision := ArcanoidGeometry.ccd_circle_box_group(
@@ -201,18 +207,23 @@ func _process_controlling_ball(delta:float) -> void:
 		
 		elif earliest_collision.collision_rect == platform_rect:
 			_game_state.ball_velocity = (_game_state.ball_position-_game_state.platform_rect.rect.get_center()-Vector2(0, 20)).normalized() * _game_state.ball_velocity.length()
+			_game_state.ball_position.y = _game_state.platform_rect.rect.position.y-_game_state.ball_radius-2.0
 			_on_ball_platform_collision.call_deferred()
 			banned_rects_sides = ArcanoidGeometry.RectGroupBannedSides.new()
 			banned_rects_sides.ban_side(earliest_collision.collision_rect, earliest_collision.collided_rect_side)
 			
 		else: # block collide
-			_game_state.blocks.erase(earliest_collision.collision_rect)
+			if (earliest_collision.collision_rect as ArcanoidBlock).hp <= 1:
+				_game_state.blocks.erase(earliest_collision.collision_rect)
+			else:
+				(earliest_collision.collision_rect as ArcanoidBlock).hp -= 1
 			if (earliest_collision.collided_rect_side == SIDE_TOP or earliest_collision.collided_rect_side == SIDE_BOTTOM):
 				_game_state.ball_velocity.y *= -1
 			else:
 				_game_state.ball_velocity.x *= -1
 			_game_state.score += 1
 			banned_rects_sides = ArcanoidGeometry.RectGroupBannedSides.new()
+			banned_rects_sides.ban_side(earliest_collision.collision_rect, earliest_collision.collided_rect_side)
 	
 	# hardcoded bugfix, when ball super rarely just ignore walls
 	if not Rect2(Vector2.ZERO, _game_state.playing_area_size).grow(-_game_state.ball_radius).has_point(_game_state.ball_position):
@@ -229,6 +240,7 @@ func _process_controlling_ball(delta:float) -> void:
 		elif _game_state.ball_position.y >= _game_state.playing_area_size.y:
 			_on_ball_falled()
 		print(\"TRUTEN\")
+
 
 func _place_ball_to_launch_position() -> void:
 	const BALL_PLATFORM_GAP : float = 2.0
@@ -248,13 +260,18 @@ func _handle_platform_movement(delta:float) -> void:
 
 
 
+func _check_blocks_deadline() -> bool:
+	for rect:ArcanoidRect in _game_state.blocks:
+		if rect.rect.end.y > _game_state.blocks_deadline_height:
+			return true
+	
+	return false
+
+
 func _spawn_blocks_layer() -> void:
 	for rect:ArcanoidRect in _game_state.blocks:
 		rect.rect.position.y += _game_state.block_size.y + _game_state.block_rows_gap
-		if rect.rect.end.y > _game_state.blocks_deadline_height:
-			_on_blocks_reached_deadline()
-			return
-
+	
 	var spawned_columns : Array[int] = []
 	var spawn_count : int = min(_game_state.blocks_spawn_count, _game_state.blocks_columns)
 	var x_offset : float = (_game_state.playing_area_size.x - \\
@@ -264,14 +281,18 @@ func _spawn_blocks_layer() -> void:
 		var column : int = randi()%_game_state.blocks_columns
 		while column in spawned_columns: column = randi()%_game_state.blocks_columns
 		spawned_columns.append(column)
-		var new_block := ArcanoidRect.new(
+		var new_block := ArcanoidBlock.new(
 			Rect2(Vector2(_game_state.block_size.x+_game_state.blocks_columns_gap, 0.0)*column + \\
-				Vector2(x_offset, _game_state.top_row_gap), _game_state.block_size))
+				Vector2(x_offset, _game_state.top_row_gap), _game_state.block_size), 6)
 		_game_state.blocks.append(new_block)
 
 
 func _on_ball_platform_collision() -> void:
-	_spawn_blocks_layer()
+	if _game_state.new_blocks_spawning:
+		_spawn_blocks_layer()
+	
+	if _check_blocks_deadline():
+		_on_blocks_reached_deadline()
 	_game_state.ball_velocity *= _game_state.speed_factor
 	_game_state.platform_speed *= _game_state.speed_factor
 
