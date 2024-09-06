@@ -1,4 +1,4 @@
-[gd_scene load_steps=19 format=3 uid="uid://bixm1xmwh4h83"]
+[gd_scene load_steps=20 format=3 uid="uid://bixm1xmwh4h83"]
 
 [ext_resource type="Theme" uid="uid://dmce53ilrrlem" path="res://main-theme.tres" id="2_665qb"]
 [ext_resource type="Script" path="res://scripts/GameState.gd" id="3_6rb05"]
@@ -13,7 +13,11 @@ script/source = "extends Node
 
 
 func _ready() -> void:
-	(%GameState as GameState).load_level_config(GlobalSettings.current_level)
+	if GlobalSettings.current_level == -1:
+		(%GameState as GameState).load_level_config(load(LevelsNamespace.INFINITE_LEVEL_CONFIG_PATH))
+	else:
+		(%GameState as GameState).load_level_config(
+			LevelsNamespace.LEVELS_CONFIGS[GlobalSettings.current_level])
 "
 
 [sub_resource type="GDScript" id="GDScript_vuba5"]
@@ -321,6 +325,8 @@ func _on_all_blocks_broken() -> void:
 		(%Screens as TabContainer).current_tab = \\
 			(%Screens as TabContainer).get_tab_idx_from_control(%LevelCompletedScreen)
 		(%Screens as Control).show()
+		(%LevelCompletedScreen as LevelCompletedScreenAPI).set_has_next_level(
+			GlobalSettings.current_level < len(LevelsNamespace.LEVELS_CONFIGS)-1)
 		get_tree().paused = true
 
 
@@ -513,7 +519,12 @@ func _input(event: InputEvent) -> void:
 
 
 func _on_level_completed_screen_next_level_button_pressed() -> void:
-	pass # Replace with function body.
+	if GlobalSettings.current_level >= len(LevelsNamespace.LEVELS_CONFIGS)-1:
+		return
+	
+	GlobalSettings.current_level += 1
+	get_tree().paused = false
+	get_tree().reload_current_scene()
 
 
 func _on_level_completed_screen_quit_game_button_pressed() -> void:
@@ -521,6 +532,11 @@ func _on_level_completed_screen_quit_game_button_pressed() -> void:
 
 
 func _on_level_completed_screen_main_menu_button_pressed() -> void:
+	get_tree().paused = false
+	get_tree().change_scene_to_file(ScenesNamespace.MAIN_MENU_SCENE_PATH)
+
+
+func _on_in_game_menu_main_menu_button_pressed() -> void:
 	get_tree().paused = false
 	get_tree().change_scene_to_file(ScenesNamespace.MAIN_MENU_SCENE_PATH)
 "
@@ -545,6 +561,21 @@ var _game_state : GameState = %GameState
 
 func _process(delta: float) -> void:
 	text = \"Score: %d\" % _game_state.score
+"
+
+[sub_resource type="GDScript" id="GDScript_bbx7j"]
+resource_name = "level_label"
+script/source = "extends Label
+
+
+func _ready() -> void:
+	var level_string : String = \"\"
+	if GlobalSettings.current_level == -1:
+		level_string = \"Infinite\"
+	else:
+		level_string = \"%d\" % (GlobalSettings.current_level+1)
+	
+	text = \"Level: %s\" % level_string
 "
 
 [sub_resource type="Environment" id="Environment_a6df3"]
@@ -619,19 +650,29 @@ offset_left = -40.0
 offset_bottom = 23.0
 grow_horizontal = 0
 theme_override_font_sizes/font_size = 32
+text = "Health"
 script = SubResource("GDScript_fgexy")
 
 [node name="ScoreLabel" type="Label" parent="GUI/HUD"]
+layout_mode = 1
+offset_right = 40.0
+offset_bottom = 38.0
+theme_override_font_sizes/font_size = 32
+text = "Score"
+script = SubResource("GDScript_4yrex")
+
+[node name="LevelLabel" type="Label" parent="GUI/HUD"]
 layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
 offset_left = -20.0
 offset_right = 20.0
-offset_bottom = 23.0
+offset_bottom = 19.0
 grow_horizontal = 2
 theme_override_font_sizes/font_size = 32
-script = SubResource("GDScript_4yrex")
+text = "Level"
+script = SubResource("GDScript_bbx7j")
 
 [node name="Screens" type="TabContainer" parent="GUI"]
 unique_name_in_owner = true
@@ -679,4 +720,5 @@ environment = SubResource("Environment_a6df3")
 [connection signal="main_menu_button_pressed" from="GUI/Screens/LevelCompletedScreen" to="GUI" method="_on_level_completed_screen_main_menu_button_pressed"]
 [connection signal="next_level_button_pressed" from="GUI/Screens/LevelCompletedScreen" to="GUI" method="_on_level_completed_screen_next_level_button_pressed"]
 [connection signal="quit_game_button_pressed" from="GUI/Screens/LevelCompletedScreen" to="GUI" method="_on_level_completed_screen_quit_game_button_pressed"]
+[connection signal="main_menu_button_pressed" from="GUI/InGameMenu" to="GUI" method="_on_in_game_menu_main_menu_button_pressed"]
 [connection signal="new_scale_setted" from="GUI/InGameMenu" to="GUI" method="_on_in_game_menu_new_scale_setted"]

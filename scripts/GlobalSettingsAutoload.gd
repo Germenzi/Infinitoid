@@ -9,4 +9,4 @@ var game_scale : float = 1.0 :
 
 var game_config : GameConfig = preload("res://resources/main_game_config.tres")
 
-var current_level : LevelConfig = preload("res://resources/level1.tres")
+var current_level : int = 0 # if -1 then infinite level

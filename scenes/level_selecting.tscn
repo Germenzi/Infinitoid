@@ -1,0 +1,74 @@
+[gd_scene load_steps=3 format=3 uid="uid://dlxtmxqusmm1k"]
+
+[ext_resource type="Theme" uid="uid://dmce53ilrrlem" path="res://main-theme.tres" id="1_fubx1"]
+
+[sub_resource type="GDScript" id="GDScript_pclnu"]
+resource_name = "main"
+script/source = "extends Control
+
+
+func _ready() -> void:
+	for i:int in len(LevelsNamespace.LEVELS_CONFIGS):
+		var level_button : Button = Button.new()
+		level_button.text = \" %d \" % (i+1)
+		(%GridContainer as GridContainer).add_child(level_button)
+		level_button.pressed.connect(func():
+			_go_level(i)
+			)
+
+
+func _go_level(level_index:int) -> void:
+	GlobalSettings.current_level = level_index
+	get_tree().change_scene_to_file(ScenesNamespace.GAME_SCENE_PATH)
+
+
+func _on_back_button_pressed() -> void:
+	get_tree().change_scene_to_file(ScenesNamespace.MAIN_MENU_SCENE_PATH)
+"
+
+[node name="LevelSelecting" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("1_fubx1")
+script = SubResource("GDScript_pclnu")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 50
+alignment = 1
+
+[node name="Label" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 10
+theme_override_font_sizes/font_size = 50
+text = "Select level"
+horizontal_alignment = 1
+
+[node name="ScrollContainer" type="ScrollContainer" parent="VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="GridContainer" type="GridContainer" parent="VBoxContainer/ScrollContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 6
+size_flags_vertical = 4
+columns = 20
+
+[node name="BackButton" type="Button" parent="VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 2
+theme_override_font_sizes/font_size = 32
+text = " Back "
+
+[connection signal="pressed" from="VBoxContainer/BackButton" to="." method="_on_back_button_pressed"]

@@ -6,13 +6,14 @@
 resource_name = "main"
 script/source = "extends Control
 
-signal play_button_pressed
+signal select_level_button_pressed
+signal play_infinite_button_pressed
 signal settings_button_pressed
 signal quit_game_button_pressed
 
 
 func _on_play_button_pressed() -> void:
-	play_button_pressed.emit()
+	play_infinite_button_pressed.emit()
 
 
 func _on_settings_button_pressed() -> void:
@@ -21,6 +22,10 @@ func _on_settings_button_pressed() -> void:
 
 func _on_quit_game_button_pressed() -> void:
 	quit_game_button_pressed.emit()
+
+
+func _on_select_level_button_pressed() -> void:
+	select_level_button_pressed.emit()
 "
 
 [node name="MainMenuUI" type="Control"]
@@ -49,7 +54,12 @@ alignment = 1
 [node name="PlayButton" type="Button" parent="VBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 50
-text = "  Play  "
+text = "  Play infinite "
+
+[node name="SelectLevelButton" type="Button" parent="VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 50
+text = "Select level"
 
 [node name="SettingsButton" type="Button" parent="VBoxContainer"]
 layout_mode = 2
@@ -62,5 +72,6 @@ theme_override_font_sizes/font_size = 50
 text = "  Quit game  "
 
 [connection signal="pressed" from="VBoxContainer/PlayButton" to="." method="_on_play_button_pressed"]
+[connection signal="pressed" from="VBoxContainer/SelectLevelButton" to="." method="_on_select_level_button_pressed"]
 [connection signal="pressed" from="VBoxContainer/SettingsButton" to="." method="_on_settings_button_pressed"]
 [connection signal="pressed" from="VBoxContainer/QuitGameButton" to="." method="_on_quit_game_button_pressed"]
