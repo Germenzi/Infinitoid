@@ -4,7 +4,7 @@
 
 [sub_resource type="GDScript" id="GDScript_40dtk"]
 resource_name = "main"
-script/source = "extends Control
+script/source = "extends GameOverScreenUIApi
 
 signal restart_button_pressed
 signal quit_game_button_pressed
@@ -21,6 +21,10 @@ func _on_quit_game_button_pressed() -> void:
 
 func _on_main_menu_pressed() -> void:
 	main_menu_button_pressed.emit()
+
+
+func _do_set_score(score:int) -> void:
+	(%ScoreLabel as Label).text = \"Score: %d\" % score
 "
 
 [sub_resource type="LabelSettings" id="LabelSettings_gp6l6"]
@@ -68,6 +72,7 @@ label_settings = SubResource("LabelSettings_gp6l6")
 horizontal_alignment = 1
 
 [node name="ScoreLabel" type="Label" parent="VBoxContainer"]
+unique_name_in_owner = true
 layout_mode = 2
 text = "Score: "
 label_settings = SubResource("LabelSettings_f10qe")

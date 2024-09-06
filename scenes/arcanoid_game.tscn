@@ -333,6 +333,7 @@ func _on_health_expired() -> void:
 	(%Screens as TabContainer).current_tab = \\
 		(%Screens as TabContainer).get_tab_idx_from_control(%GameOverScreen)
 	(%Screens as Control).show()
+	(%GameOverScreen as GameOverScreenUIApi).set_score(_game_state.score)
 
 
 func _on_game_starging_ui_start_button_pressed(ability:GameAbilitiesNamespace.Types) -> void:
