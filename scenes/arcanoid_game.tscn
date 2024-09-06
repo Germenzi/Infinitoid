@@ -1,9 +1,10 @@
-[gd_scene load_steps=17 format=3 uid="uid://bixm1xmwh4h83"]
+[gd_scene load_steps=18 format=3 uid="uid://bixm1xmwh4h83"]
 
 [ext_resource type="Theme" uid="uid://dmce53ilrrlem" path="res://main-theme.tres" id="2_665qb"]
 [ext_resource type="Script" path="res://scripts/GameState.gd" id="3_6rb05"]
 [ext_resource type="PackedScene" uid="uid://dj4cqaqhhkqus" path="res://scenes/game_starting_ui.tscn" id="3_ricfi"]
 [ext_resource type="PackedScene" uid="uid://6folc8h7iqa7" path="res://scenes/game_over_screen.tscn" id="4_47ygy"]
+[ext_resource type="PackedScene" uid="uid://b1mwgw0sjehek" path="res://scenes/in_game_menu.tscn" id="5_6e5sj"]
 
 [sub_resource type="GDScript" id="GDScript_vuba5"]
 resource_name = "drawer"
@@ -14,7 +15,11 @@ var _game_state : GameState = %GameState
 
 func _ready() -> void:
 	get_tree().root.size_changed.connect(_on_viewport_size_changed)
+	set_window_scale(GlobalSettings.game_scale)
 	_on_viewport_size_changed()
+	GlobalSettings.game_scale_changed.connect(func():
+		set_window_scale(GlobalSettings.game_scale)
+		)
 
 
 func _process(delta: float) -> void:
@@ -41,8 +46,9 @@ func _draw() -> void:
 		_game_state.blocks_colors[min(block.hp-1, len(_game_state.blocks_colors))], false, _game_state.block_draw_width, false
 		)
 
+
 func set_window_scale(scale_factor:float) -> void:
-	var diff : Vector2 = _game_state.playing_area_size - \\
+	var diff : Vector2 = _game_state.playing_area_size*scale.x - \\
 		_game_state.playing_area_size*scale_factor
 	
 	position += diff/2
@@ -476,6 +482,16 @@ func _on_game_over_screen_quit_game_button_pressed() -> void:
 func _on_game_over_screen_restart_button_pressed() -> void:
 	get_tree().paused = false
 	get_tree().reload_current_scene()
+
+
+func _on_in_game_menu_new_scale_setted(game_scale: float) -> void:
+	GlobalSettings.game_scale = game_scale
+
+
+func _input(event: InputEvent) -> void:
+	if event.is_action_pressed(\"pasue_game\"):
+		get_tree().paused = not get_tree().paused
+		(%InGameMenu as Control).visible = not (%InGameMenu as Control).visible
 "
 
 [sub_resource type="GDScript" id="GDScript_0skvr"]
@@ -573,10 +589,11 @@ initial_block_rows = 1
 top_row_gap = 5.0
 
 [node name="GUI" type="CanvasLayer" parent="."]
+process_mode = 3
 layer = 3
 script = SubResource("GDScript_hy8dd")
 
-[node name="Control" type="Control" parent="GUI"]
+[node name="HUD" type="Control" parent="GUI"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -585,13 +602,13 @@ grow_horizontal = 2
 grow_vertical = 2
 theme = ExtResource("2_665qb")
 
-[node name="SpeedLabel" type="Label" parent="GUI/Control"]
+[node name="SpeedLabel" type="Label" parent="GUI/HUD"]
 layout_mode = 0
 offset_right = 95.0
 offset_bottom = 39.0
 script = SubResource("GDScript_0skvr")
 
-[node name="HealthLabel" type="Label" parent="GUI/Control"]
+[node name="HealthLabel" type="Label" parent="GUI/HUD"]
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
@@ -601,7 +618,7 @@ offset_bottom = 23.0
 grow_horizontal = 0
 script = SubResource("GDScript_fgexy")
 
-[node name="ScoreLabel" type="Label" parent="GUI/Control"]
+[node name="ScoreLabel" type="Label" parent="GUI/HUD"]
 layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
@@ -612,10 +629,9 @@ offset_bottom = 23.0
 grow_horizontal = 2
 script = SubResource("GDScript_4yrex")
 
-[node name="Screens" type="TabContainer" parent="GUI/Control"]
+[node name="Screens" type="TabContainer" parent="GUI"]
 unique_name_in_owner = true
 process_mode = 3
-layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -624,23 +640,30 @@ grow_vertical = 2
 current_tab = 0
 tabs_visible = false
 
-[node name="GameStartingUI" parent="GUI/Control/Screens" instance=ExtResource("3_ricfi")]
+[node name="GameStartingUI" parent="GUI/Screens" instance=ExtResource("3_ricfi")]
 unique_name_in_owner = true
+process_mode = 1
 layout_mode = 2
 metadata/_tab_index = 0
 
-[node name="GameOverScreen" parent="GUI/Control/Screens" instance=ExtResource("4_47ygy")]
+[node name="GameOverScreen" parent="GUI/Screens" instance=ExtResource("4_47ygy")]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
 metadata/_tab_index = 1
+
+[node name="InGameMenu" parent="GUI" instance=ExtResource("5_6e5sj")]
+unique_name_in_owner = true
+process_mode = 3
+visible = false
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_a6df3")
 
 [connection signal="draw" from="Drawer" to="GameController" method="_on_drawer_draw"]
 [connection signal="draw" from="Drawer" to="GameController/BallTrajectroryAbility" method="_on_drawer_draw"]
-[connection signal="start_button_pressed" from="GUI/Control/Screens/GameStartingUI" to="GameController" method="_on_game_starging_ui_start_button_pressed"]
-[connection signal="main_menu_button_pressed" from="GUI/Control/Screens/GameOverScreen" to="GUI" method="_on_game_over_screen_main_menu_button_pressed"]
-[connection signal="quit_game_button_pressed" from="GUI/Control/Screens/GameOverScreen" to="GUI" method="_on_game_over_screen_quit_game_button_pressed"]
-[connection signal="restart_button_pressed" from="GUI/Control/Screens/GameOverScreen" to="GUI" method="_on_game_over_screen_restart_button_pressed"]
+[connection signal="start_button_pressed" from="GUI/Screens/GameStartingUI" to="GameController" method="_on_game_starging_ui_start_button_pressed"]
+[connection signal="main_menu_button_pressed" from="GUI/Screens/GameOverScreen" to="GUI" method="_on_game_over_screen_main_menu_button_pressed"]
+[connection signal="quit_game_button_pressed" from="GUI/Screens/GameOverScreen" to="GUI" method="_on_game_over_screen_quit_game_button_pressed"]
+[connection signal="restart_button_pressed" from="GUI/Screens/GameOverScreen" to="GUI" method="_on_game_over_screen_restart_button_pressed"]
+[connection signal="new_scale_setted" from="GUI/InGameMenu" to="GUI" method="_on_in_game_menu_new_scale_setted"]
