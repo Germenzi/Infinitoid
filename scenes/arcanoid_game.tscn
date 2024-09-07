@@ -35,7 +35,6 @@ func _ready() -> void:
 		set_window_scale(GlobalSettings.game_scale)
 		)
 
-
 func _process(delta: float) -> void:
 	queue_redraw()
 
@@ -299,7 +298,7 @@ func _spawn_blocks_layer() -> void:
 		spawned_columns.append(column)
 		var new_block := ArcanoidBlock.new(
 			Rect2(Vector2(GlobalSettings.game_config.block_size.x+GlobalSettings.game_config.blocks_columns_gap, 0.0)*column + \\
-				Vector2(GlobalSettings.game_config.first_row_offset, GlobalSettings.game_config.top_row_gap), GlobalSettings.game_config.block_size), 6)
+				Vector2(GlobalSettings.game_config.first_row_offset, GlobalSettings.game_config.top_row_gap), GlobalSettings.game_config.block_size), 1)
 		_game_state.blocks.append(new_block)
 
 
@@ -618,6 +617,7 @@ time_remains_recovery_scale = 0.25
 
 [node name="PlatformExtensionAbility" type="Node" parent="GameController"]
 script = SubResource("GDScript_1clpx")
+extension_distance = 30.0
 
 [node name="MagnetismAbility" type="Node" parent="GameController"]
 script = SubResource("GDScript_6431r")

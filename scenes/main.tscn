@@ -11,10 +11,6 @@ func _on_main_menu_ui_quit_game_button_pressed() -> void:
 	get_tree().quit()
 
 
-func _on_main_menu_ui_settings_button_pressed() -> void:
-	pass # Replace with function body.
-
-
 func _on_main_menu_ui_play_infinite_button_pressed() -> void:
 	GlobalSettings.current_level = -1
 	get_tree().change_scene_to_file(ScenesNamespace.GAME_SCENE_PATH)
@@ -22,14 +18,39 @@ func _on_main_menu_ui_play_infinite_button_pressed() -> void:
 
 func _on_main_menu_ui_select_level_button_pressed() -> void:
 	get_tree().change_scene_to_file(ScenesNamespace.LEVEL_SELECTING_SCENE_PATH)
+
+
+func _on_fullscreen_checkbox_toggled(toggled_on: bool) -> void:
+	DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN if toggled_on else DisplayServer.WINDOW_MODE_WINDOWED)
+
+
+func _on_main_menu_ui_tutorial_button_pressed() -> void:
+	get_tree().change_scene_to_file(ScenesNamespace.TUTORIAL_SCENE_PATH)
 "
 
 [node name="Main" type="Node"]
 script = SubResource("GDScript_o8j6b")
 
 [node name="MainMenuUI" parent="." instance=ExtResource("1_l2h6o")]
+mouse_filter = 1
+
+[node name="FullscreenCheckbox" type="CheckBox" parent="."]
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -136.0
+offset_top = -47.0
+offset_right = -20.0
+offset_bottom = -16.0
+grow_horizontal = 0
+grow_vertical = 0
+button_pressed = true
+text = " Fullscreen "
 
 [connection signal="play_infinite_button_pressed" from="MainMenuUI" to="." method="_on_main_menu_ui_play_infinite_button_pressed"]
 [connection signal="quit_game_button_pressed" from="MainMenuUI" to="." method="_on_main_menu_ui_quit_game_button_pressed"]
 [connection signal="select_level_button_pressed" from="MainMenuUI" to="." method="_on_main_menu_ui_select_level_button_pressed"]
-[connection signal="settings_button_pressed" from="MainMenuUI" to="." method="_on_main_menu_ui_settings_button_pressed"]
+[connection signal="tutorial_button_pressed" from="MainMenuUI" to="." method="_on_main_menu_ui_tutorial_button_pressed"]
+[connection signal="toggled" from="FullscreenCheckbox" to="." method="_on_fullscreen_checkbox_toggled"]
