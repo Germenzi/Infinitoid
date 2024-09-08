@@ -423,8 +423,26 @@ func _on_drawer_draw() -> void:
 	if _game_state.state_machine.state != GameState.CONTROLLING_BALL_STATE:
 		return
 	
-	(%Drawer as CanvasItem).draw_line(_game_state.ball_position, 
-		_game_state.ball_position+_game_state.ball_velocity, 
+	var seg_start : Vector2 = _game_state.ball_position
+	var seg_end : Vector2 = _game_state.ball_position+_game_state.ball_velocity
+	
+	var borders : Array[Vector2] = [
+		Vector2.ZERO,
+		Vector2(GlobalSettings.game_config.playing_area_size.x, 0),
+		GlobalSettings.game_config.playing_area_size,
+		Vector2(0, GlobalSettings.game_config.playing_area_size.y)
+	]
+	
+	for i:int in len(borders):
+		var from : Vector2 = borders[i]
+		var to : Vector2 = borders[(i+1)%4]
+		
+		var intersect : Variant = Geometry2D.segment_intersects_segment(from, to, seg_start, seg_end)
+		if intersect != null:
+			seg_end = intersect
+	
+	(%Drawer as CanvasItem).draw_line(seg_start, 
+		seg_end, 
 		GlobalSettings.game_config.ball_color, 1.0, true)
 "
 

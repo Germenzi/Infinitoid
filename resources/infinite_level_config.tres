@@ -9,4 +9,4 @@ new_blocks_spawning = true
 initial_ball_speed = 500.0
 initial_platform_speed = 400.0
 initial_block_spawn_amount = 1
-initial_level_structure = "1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1"
+initial_level_structure = "0,0,0,0,1"
