@@ -7,6 +7,9 @@ resource_name = "main"
 script/source = "extends Node
 
 
+func _ready() -> void:
+	print(\"Hello\")
+
 func _on_main_menu_ui_quit_game_button_pressed() -> void:
 	get_tree().quit()
 
