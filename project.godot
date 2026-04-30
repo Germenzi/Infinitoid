@@ -23,6 +23,7 @@ config/icon="res://icon.svg"
 [autoload]
 
 GlobalSettings="*res://scripts/GlobalSettingsAutoload.gd"
+Bgmusic="uid://dm2ganu3to5yr"
 
 [debug]
 

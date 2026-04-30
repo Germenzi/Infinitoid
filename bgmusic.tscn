@@ -1,0 +1,20 @@
+[gd_scene format=3 uid="uid://dm2ganu3to5yr"]
+
+[ext_resource type="AudioStream" uid="uid://bgcq3wri78ke2" path="res://bgmusic.wav" id="1_p34rl"]
+
+[sub_resource type="GDScript" id="GDScript_lqd3d"]
+resource_name = "ghfghfgh"
+script/source = "extends AudioStreamPlayer
+
+
+func _on_finished() -> void:
+	play()
+"
+
+[node name="Bgmusic" type="AudioStreamPlayer" unique_id=1282489736]
+process_mode = 3
+stream = ExtResource("1_p34rl")
+autoplay = true
+script = SubResource("GDScript_lqd3d")
+
+[connection signal="finished" from="." to="." method="_on_finished"]
