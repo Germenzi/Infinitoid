@@ -2,7 +2,7 @@ extends RefCounted
 
 class_name StateMachine
 
-var _state_changed_handlers : Dictionary = {} # StringName : Callable
+var _state_changed_handlers : Dictionary[StringName, Callable] = {}
 
 var state : StringName :
 	set = go_state
@@ -13,7 +13,7 @@ func go_state(p_state:StringName) -> Error:
 		return ERR_DOES_NOT_EXIST
 	
 	state = p_state
-	(_state_changed_handlers[state] as Callable).call()
+	_state_changed_handlers[state].call()
 	return OK
 
 
