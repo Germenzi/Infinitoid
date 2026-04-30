@@ -226,7 +226,6 @@ func _check_collisions(delta:float) -> void:
 			_game_state.ball_position.y = 0.0 + _game_state.ball_radius + 4.0
 		elif _game_state.ball_position.y >= GlobalSettings.game_config.playing_area_size.y:
 			_on_ball_falled()
-		print(\"TRUTEN\")
 
 
 func _place_ball_to_launch_position() -> void:
