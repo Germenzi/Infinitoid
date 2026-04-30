@@ -1,4 +1,4 @@
-[gd_scene load_steps=3 format=3 uid="uid://b1xl420g0lc32"]
+[gd_scene format=3 uid="uid://b1xl420g0lc32"]
 
 [ext_resource type="PackedScene" uid="uid://cuuhm46xdebyh" path="res://scenes/main_menu_ui.tscn" id="1_l2h6o"]
 
@@ -7,20 +7,12 @@ resource_name = "main"
 script/source = "extends Node
 
 
-func _ready() -> void:
-	print(\"Hello\")
-
 func _on_main_menu_ui_quit_game_button_pressed() -> void:
 	get_tree().quit()
 
 
 func _on_main_menu_ui_play_infinite_button_pressed() -> void:
-	GlobalSettings.current_level = -1
 	get_tree().change_scene_to_file(ScenesNamespace.GAME_SCENE_PATH)
-
-
-func _on_main_menu_ui_select_level_button_pressed() -> void:
-	get_tree().change_scene_to_file(ScenesNamespace.LEVEL_SELECTING_SCENE_PATH)
 
 
 func _on_fullscreen_checkbox_toggled(toggled_on: bool) -> void:
@@ -31,13 +23,13 @@ func _on_main_menu_ui_tutorial_button_pressed() -> void:
 	get_tree().change_scene_to_file(ScenesNamespace.TUTORIAL_SCENE_PATH)
 "
 
-[node name="Main" type="Node"]
+[node name="Main" type="Node" unique_id=556780036]
 script = SubResource("GDScript_o8j6b")
 
-[node name="MainMenuUI" parent="." instance=ExtResource("1_l2h6o")]
+[node name="MainMenuUI" parent="." unique_id=858781240 instance=ExtResource("1_l2h6o")]
 mouse_filter = 1
 
-[node name="FullscreenCheckbox" type="CheckBox" parent="."]
+[node name="FullscreenCheckbox" type="CheckBox" parent="." unique_id=1318796372]
 anchors_preset = 3
 anchor_left = 1.0
 anchor_top = 1.0
@@ -54,6 +46,5 @@ text = " Fullscreen "
 
 [connection signal="play_infinite_button_pressed" from="MainMenuUI" to="." method="_on_main_menu_ui_play_infinite_button_pressed"]
 [connection signal="quit_game_button_pressed" from="MainMenuUI" to="." method="_on_main_menu_ui_quit_game_button_pressed"]
-[connection signal="select_level_button_pressed" from="MainMenuUI" to="." method="_on_main_menu_ui_select_level_button_pressed"]
 [connection signal="tutorial_button_pressed" from="MainMenuUI" to="." method="_on_main_menu_ui_tutorial_button_pressed"]
 [connection signal="toggled" from="FullscreenCheckbox" to="." method="_on_fullscreen_checkbox_toggled"]

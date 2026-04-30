@@ -1,4 +1,4 @@
-[gd_scene load_steps=3 format=3 uid="uid://cuuhm46xdebyh"]
+[gd_scene format=3 uid="uid://cuuhm46xdebyh"]
 
 [ext_resource type="Theme" uid="uid://dmce53ilrrlem" path="res://main-theme.tres" id="1_6hq1e"]
 
@@ -6,7 +6,6 @@
 resource_name = "main"
 script/source = "extends Control
 
-signal select_level_button_pressed
 signal play_infinite_button_pressed
 signal quit_game_button_pressed
 signal tutorial_button_pressed
@@ -19,14 +18,11 @@ func _on_quit_game_button_pressed() -> void:
 	quit_game_button_pressed.emit()
 
 
-func _on_select_level_button_pressed() -> void:
-	select_level_button_pressed.emit()
-
 func _on_tutorial_button_pressed() -> void:
 	tutorial_button_pressed.emit()
 "
 
-[node name="MainMenuUI" type="Control"]
+[node name="MainMenuUI" type="Control" unique_id=123788492]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -36,7 +32,7 @@ grow_vertical = 2
 theme = ExtResource("1_6hq1e")
 script = SubResource("GDScript_xbkml")
 
-[node name="VBoxContainer" type="VBoxContainer" parent="."]
+[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=1740587664]
 layout_mode = 1
 anchors_preset = 13
 anchor_left = 0.5
@@ -49,14 +45,14 @@ grow_vertical = 2
 theme_override_constants/separation = 15
 alignment = 1
 
-[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer" unique_id=1748936832]
 layout_mode = 2
 
-[node name="WelcomeLabel" type="Label" parent="VBoxContainer/VBoxContainer"]
+[node name="WelcomeLabel" type="Label" parent="VBoxContainer/VBoxContainer" unique_id=1668702574]
 layout_mode = 2
 text = "Welcome to"
 
-[node name="InfinitoidLabel" type="Label" parent="VBoxContainer/VBoxContainer"]
+[node name="InfinitoidLabel" type="Label" parent="VBoxContainer/VBoxContainer" unique_id=820869129]
 layout_mode = 2
 theme_override_font_sizes/font_size = 70
 text = "Infinitoid
@@ -64,27 +60,21 @@ text = "Infinitoid
 "
 horizontal_alignment = 1
 
-[node name="PlayButton" type="Button" parent="VBoxContainer"]
+[node name="PlayButton" type="Button" parent="VBoxContainer" unique_id=1613070114]
 layout_mode = 2
 theme_override_font_sizes/font_size = 50
 text = "  Infinite mode  "
 
-[node name="SelectLevelButton" type="Button" parent="VBoxContainer"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 50
-text = "Select level"
-
-[node name="TutorialButton" type="Button" parent="VBoxContainer"]
+[node name="TutorialButton" type="Button" parent="VBoxContainer" unique_id=1754641859]
 layout_mode = 2
 theme_override_font_sizes/font_size = 50
 text = "Tutorial"
 
-[node name="QuitGameButton" type="Button" parent="VBoxContainer"]
+[node name="QuitGameButton" type="Button" parent="VBoxContainer" unique_id=2104786063]
 layout_mode = 2
 theme_override_font_sizes/font_size = 50
 text = "  Quit game  "
 
 [connection signal="pressed" from="VBoxContainer/PlayButton" to="." method="_on_play_button_pressed"]
-[connection signal="pressed" from="VBoxContainer/SelectLevelButton" to="." method="_on_select_level_button_pressed"]
 [connection signal="pressed" from="VBoxContainer/TutorialButton" to="." method="_on_tutorial_button_pressed"]
 [connection signal="pressed" from="VBoxContainer/QuitGameButton" to="." method="_on_quit_game_button_pressed"]

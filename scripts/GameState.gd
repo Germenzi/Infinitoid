@@ -35,25 +35,7 @@ func load_level_config(level_config:LevelConfig) -> void:
 	platform_speed = level_config.initial_platform_speed
 	ball_velocity = Vector2.RIGHT * level_config.initial_ball_speed
 	blocks_spawn_count = level_config.initial_block_spawn_amount
-	new_blocks_spawning = level_config.new_blocks_spawning
 	speed_factor = level_config.speed_factor
-	
-	var csv_lines := level_config.initial_level_structure.split("\n")
-	print(csv_lines)
-	for i:int in len(csv_lines):
-		var blocks_hp : Array[int] = []
-		blocks_hp.append_array(Array(csv_lines[i].split(",")).map(func(x:String): return int(x)))
-		print(blocks_hp)
-		
-		for j:int in min(GlobalSettings.game_config.block_column_count, len(blocks_hp)):
-			if blocks_hp[j] == 0:
-				continue
-			blocks.append(ArcanoidBlock.new(
-				Rect2(
-				Vector2(GlobalSettings.game_config.first_row_offset, GlobalSettings.game_config.top_row_gap) + \
-					(GlobalSettings.game_config.block_size+Vector2(GlobalSettings.game_config.blocks_columns_gap, GlobalSettings.game_config.block_rows_gap))*Vector2(j, i), 
-				GlobalSettings.game_config.block_size), blocks_hp[j]))
-
 
 
 func _enter_tree() -> void:
