@@ -36,6 +36,14 @@ func load_level_config(level_config:LevelConfig) -> void:
 	ball_velocity = Vector2.RIGHT * level_config.initial_ball_speed
 	blocks_spawn_count = level_config.initial_block_spawn_amount
 	speed_factor = level_config.speed_factor
+	
+	blocks.append(ArcanoidBlock.new(
+		Rect2(
+		Vector2(GlobalSettings.game_config.first_row_offset, GlobalSettings.game_config.top_row_gap) + \
+			(GlobalSettings.game_config.block_size + Vector2(GlobalSettings.game_config.blocks_columns_gap, 0)) 
+				* Vector2(randi() % GlobalSettings.game_config.block_column_count, 0), 
+		GlobalSettings.game_config.block_size), 1))
+
 
 
 func _enter_tree() -> void:

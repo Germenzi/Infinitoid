@@ -108,7 +108,9 @@ func _ready() -> void:
 	
 	_game_state.platform_rect.rect.position = Vector2(
 		GlobalSettings.game_config.playing_area_size.x/2.0 -_game_state.platform_rect.rect.size.x/2.0, 
-		GlobalSettings.game_config.playing_area_size.y-GlobalSettings.game_config.platform_height-_game_state.platform_rect.rect.size.y)
+		GlobalSettings.game_config.playing_area_size.y-GlobalSettings.game_config.platform_height
+		-_game_state.platform_rect.rect.size.y)
+	
 	_place_ball_to_launch_position()
 
 
@@ -152,7 +154,6 @@ func _process_controlling_ball(delta:float) -> void:
 	_handle_platform_movement(delta)
 	
 	_check_collisions(delta)
-
 
 
 func _check_collisions(delta:float) -> void:
