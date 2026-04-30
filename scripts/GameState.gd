@@ -55,6 +55,10 @@ func _enter_tree() -> void:
 
 
 func _on_score_changed() -> void:
+	if score >= 1:
+		(%LeftHint as Control).hide()
+		(%RightHint as Control).hide()
+	
 	const NEW_BLOCKS_BEIGN_AT_SCORE : int = 10
 	const ADD_ANOTHER_SPAWN_BLOCK_SCORE_RATE : int = 30
 	
