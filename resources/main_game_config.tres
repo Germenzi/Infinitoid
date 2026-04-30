@@ -14,4 +14,4 @@ block_rows_gap = 1.0
 blocks_columns_gap = 2.0
 blocks_deadline_height = 600.0
 top_row_gap = 10.0
-blocks_colors = Array[Color]([Color(1, 0, 0, 1), Color(1, 1, 0, 1), Color(0, 0.7371871, 0.8235295, 1), Color(1, 0, 0.91679955, 1), Color(0, 0.196871, 0.92941177, 1), Color(1, 1, 1, 1)])
+blocks_colors = Array[Color]([Color(1, 0, 0, 1), Color(1, 1, 0, 1), Color(0, 0.8235295, 0.5983268, 1), Color(1, 0, 0.91679955, 1), Color(0, 0.196871, 0.92941177, 1), Color(1, 1, 1, 1)])
