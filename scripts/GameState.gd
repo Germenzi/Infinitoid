@@ -65,9 +65,10 @@ func _on_score_changed() -> void:
 	const NEW_HP_BEGIN_AT_SCORE : int = 20
 	const NEW_HP_SCORE_RATE : int = 30
 	
-	var need_new_hp : bool = (score - NEW_HP_BEGIN_AT_SCORE) % NEW_HP_BEGIN_AT_SCORE == 0
+	var need_new_hp : bool = (score - NEW_HP_BEGIN_AT_SCORE) % NEW_HP_SCORE_RATE == 0
 	if need_new_hp:
-		var step : int =  (score - NEW_HP_BEGIN_AT_SCORE) / NEW_HP_BEGIN_AT_SCORE + 1
+		@warning_ignore("integer_division")
+		var step : int =  (score - NEW_HP_BEGIN_AT_SCORE) / NEW_HP_SCORE_RATE + 1
 		if step > 4:
 			return
 		
