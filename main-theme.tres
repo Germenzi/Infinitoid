@@ -3,17 +3,7 @@
 [sub_resource type="SystemFont" id="SystemFont_rxeyf"]
 font_names = PackedStringArray("Cascadia Code")
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_yxgev"]
-content_margin_left = 7.0
-content_margin_top = 5.0
-content_margin_right = 7.0
-content_margin_bottom = 5.0
-bg_color = Color(0, 0, 0, 0.588235)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.7, 0.7, 0.7, 1)
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_8mlnx"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_v05d8"]
 content_margin_left = 7.0
@@ -96,7 +86,7 @@ Button/constants/icon_max_width = 0
 Button/constants/outline_size = 0
 Button/font_sizes/font_size = 20
 Button/fonts/font = SubResource("SystemFont_rxeyf")
-Button/styles/disabled = SubResource("StyleBoxFlat_yxgev")
+Button/styles/disabled = SubResource("StyleBoxTexture_8mlnx")
 Button/styles/focus = SubResource("StyleBoxFlat_v05d8")
 Button/styles/hover = SubResource("StyleBoxFlat_b5040")
 Button/styles/normal = SubResource("StyleBoxFlat_desv1")
