@@ -330,10 +330,6 @@ func _on_game_over_screen_main_menu_button_pressed() -> void:
 	get_tree().change_scene_to_file(ScenesNamespace.MAIN_MENU_SCENE_PATH)
 
 
-func _on_game_over_screen_quit_game_button_pressed() -> void:
-	get_tree().quit()
-
-
 func _on_game_over_screen_restart_button_pressed() -> void:
 	get_tree().paused = false
 	get_tree().reload_current_scene()
@@ -446,5 +442,4 @@ environment = SubResource("Environment_a6df3")
 
 [connection signal="draw" from="Drawer" to="GameController" method="_on_drawer_draw"]
 [connection signal="main_menu_button_pressed" from="GUI/GameOverScreen" to="GUI" method="_on_game_over_screen_main_menu_button_pressed"]
-[connection signal="quit_game_button_pressed" from="GUI/GameOverScreen" to="GUI" method="_on_game_over_screen_quit_game_button_pressed"]
 [connection signal="restart_button_pressed" from="GUI/GameOverScreen" to="GUI" method="_on_game_over_screen_restart_button_pressed"]
