@@ -10,8 +10,8 @@ script/source = "extends Node
 
 
 func _ready() -> void:
-	(%GameState as GameState).load_level_config(load(LevelsNamespace.INFINITE_LEVEL_CONFIG_PATH))
-	(%GameState as GameState).state_machine.go_state(GameState.LAUNCHING_BALL_STATE)
+	(%GameState as GameState).load_level_config(
+		load(LevelsNamespace.INFINITE_LEVEL_CONFIG_PATH) as LevelConfig)
 "
 
 [sub_resource type="GDScript" id="GDScript_vuba5"]
@@ -85,6 +85,9 @@ script/source = "extends Node
 @onready
 var _game_state : GameState = %GameState
 
+const LAUNCHING_BALL_STATE : StringName = &\"LAUNCHING_BALL_STATE\"
+const CONTROLLING_BALL_STATE : StringName = &\"CONTROLLING_BALL_STATE\"
+const WAITING_FOR_DAMAGE_STATE : StringName = &\"WAITING_FOR_DAMAGE_STATE\"
 const DAMAGE_TIME_AWATING : float = 1.0 # sec
 
 enum BallCollisionTypes {
@@ -99,11 +102,12 @@ enum DamageReasons {
 }
 
 var _damage_reason : DamageReasons
+var _state_machine : StateMachine = StateMachine.new()
 
 func _ready() -> void:
-	_game_state.state_machine.handle_state(GameState.LAUNCHING_BALL_STATE, _on_state_launching_ball)
-	_game_state.state_machine.handle_state(GameState.CONTROLLING_BALL_STATE, _on_state_controlling_ball)
-	_game_state.state_machine.handle_state(GameState.WAITING_FOR_DAMAGE_STATE, _on_state_waiting_for_damage)
+	_state_machine.handle_state(LAUNCHING_BALL_STATE, _on_state_launching_ball)
+	_state_machine.handle_state(CONTROLLING_BALL_STATE, _on_state_controlling_ball)
+	_state_machine.handle_state(WAITING_FOR_DAMAGE_STATE, _on_state_waiting_for_damage)
 	
 	_game_state.platform_rect.rect.position = Vector2(
 		GlobalSettings.game_config.playing_area_size.x/2.0 -_game_state.platform_rect.rect.size.x/2.0, 
@@ -111,6 +115,7 @@ func _ready() -> void:
 		-_game_state.platform_rect.rect.size.y)
 	
 	_place_ball_to_launch_position()
+	_state_machine.go_state(LAUNCHING_BALL_STATE)
 
 
 func _on_state_launching_ball() -> void:
@@ -131,10 +136,10 @@ func _on_state_waiting_for_damage() -> void:
 
 
 func _process(delta: float) -> void:
-	match _game_state.state_machine.state:
-		GameState.LAUNCHING_BALL_STATE:
+	match _state_machine.state:
+		LAUNCHING_BALL_STATE:
 			_process_launching_ball(delta)
-		GameState.CONTROLLING_BALL_STATE:
+		CONTROLLING_BALL_STATE:
 			_process_controlling_ball(delta)
 
 
@@ -146,7 +151,7 @@ func _process_launching_ball(delta:float) -> void:
 	if Input.is_action_just_pressed(\"platform_launch_ball\"):
 		var launch_direction : Vector2 = (_game_state.ball_position - _game_state.platform_rect.rect.get_center()).normalized()
 		_game_state.ball_velocity = launch_direction*_game_state.ball_velocity.length()
-		_game_state.state_machine.go_state(GameState.CONTROLLING_BALL_STATE)
+		_state_machine.go_state(CONTROLLING_BALL_STATE)
 
 
 func _process_controlling_ball(delta:float) -> void:
@@ -284,7 +289,8 @@ func _on_ball_falled() -> void:
 	_damage_reason = DamageReasons.BALL_FALLED
 	if await _do_damage():
 		return
-	_game_state.state_machine.go_state(GameState.LAUNCHING_BALL_STATE)
+	
+	_state_machine.go_state(LAUNCHING_BALL_STATE)
 
 
 func _on_blocks_reached_deadline() -> void:
@@ -294,13 +300,13 @@ func _on_blocks_reached_deadline() -> void:
 	
 	_game_state.blocks = []
 	_spawn_blocks_layer()
-	_game_state.state_machine.go_state(GameState.LAUNCHING_BALL_STATE)
+	_state_machine.go_state(LAUNCHING_BALL_STATE)
 
 
 # returns true if health expired after damage
 func _do_damage() -> bool:
 	_game_state.health -= 1
-	_game_state.state_machine.go_state(GameState.WAITING_FOR_DAMAGE_STATE)
+	_state_machine.go_state(WAITING_FOR_DAMAGE_STATE)
 	await get_tree().create_timer(DAMAGE_TIME_AWATING).timeout
 	if _game_state.health <= 0:
 		_on_health_expired()

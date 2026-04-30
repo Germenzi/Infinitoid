@@ -2,14 +2,8 @@ extends Node
 
 class_name GameState
 
-const LAUNCHING_BALL_STATE : StringName = &"LAUNCHING_BALL_STATE"
-const CONTROLLING_BALL_STATE : StringName = &"CONTROLLING_BALL_STATE"
-const WAITING_FOR_DAMAGE_STATE : StringName = &"WAITING_FOR_DAMAGE_STATE"
-
 var speed_factor : float = 1.05
 var new_blocks_spawning : bool = true
-
-var state_machine : StateMachine = StateMachine.new()
 
 var playing_area_ball_collide_rect : ArcanoidRect :
 	get:
