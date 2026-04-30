@@ -158,8 +158,103 @@ func _process_launching_ball(delta:float) -> void:
 
 func _process_controlling_ball(delta:float) -> void:
 	_handle_platform_movement(delta)
-	
 	_check_collisions(delta)
+
+
+func _place_ball_to_launch_position() -> void:
+	const BALL_PLATFORM_GAP : float = 2.0
+	
+	_game_state.ball_position = _game_state.platform_rect.rect.position + \\
+		Vector2(_game_state.platform_rect.rect.size.x*randf(), -_game_state.ball_radius-BALL_PLATFORM_GAP)
+
+
+func _handle_platform_movement(delta:float) -> void:
+	var platform_speed_input : float = Input.get_axis(\"platform_left\", \"platform_right\")
+	
+	_game_state.platform_rect.rect.position.x += _game_state.platform_speed*delta*platform_speed_input
+	if _game_state.platform_rect.rect.end.x > GlobalSettings.game_config.playing_area_size.x:
+		_game_state.platform_rect.rect.position.x = GlobalSettings.game_config.playing_area_size.x-_game_state.platform_rect.rect.size.x
+	elif _game_state.platform_rect.rect.position.x < 0.0:
+		_game_state.platform_rect.rect.position.x = 0.0
+
+
+
+func _check_blocks_deadline() -> bool:
+	for rect:ArcanoidRect in _game_state.blocks:
+		if rect.rect.end.y > GlobalSettings.game_config.blocks_deadline_height:
+			return true
+	
+	return false
+
+
+func _spawn_blocks_layer() -> void:
+	for rect:ArcanoidRect in _game_state.blocks:
+		rect.rect.position.y += GlobalSettings.game_config.block_size.y + GlobalSettings.game_config.block_rows_gap
+	
+	var spawned_columns : Array[int] = []
+	var spawn_count : int = min(_game_state.blocks_spawn_count, GlobalSettings.game_config.block_column_count)
+	
+	for i:int in spawn_count:
+		var column : int = randi()%GlobalSettings.game_config.block_column_count
+		while column in spawned_columns: column = randi()%GlobalSettings.game_config.block_column_count
+		spawned_columns.append(column)
+		var new_block := ArcanoidBlock.new(
+			Rect2(Vector2(GlobalSettings.game_config.block_size.x+GlobalSettings.game_config.blocks_columns_gap, 0.0)*column + \\
+				Vector2(GlobalSettings.game_config.first_row_offset, GlobalSettings.game_config.top_row_gap), GlobalSettings.game_config.block_size), 1)
+		_game_state.blocks.append(new_block)
+		
+		var hp_rate_val : float = randf()
+		var sum : float = 0.0
+		for j:int in _game_state.block_hp_spawn_rate.keys():
+			sum += _game_state.block_hp_spawn_rate[j]
+			if sum >= hp_rate_val:
+				new_block.hp = j
+				break
+
+
+func _on_ball_platform_collision() -> void:
+	if _game_state.new_blocks_spawning:
+		_spawn_blocks_layer()
+	
+	if _check_blocks_deadline():
+		_on_blocks_reached_deadline()
+	_game_state.ball_velocity *= _game_state.speed_factor
+	_game_state.platform_speed *= _game_state.speed_factor
+
+
+func _on_ball_falled() -> void:
+	_damage_reason = DamageReasons.BALL_FALLED
+	if await _do_damage():
+		return
+	
+	_state_machine.go_state(LAUNCHING_BALL_STATE)
+
+
+func _on_blocks_reached_deadline() -> void:
+	_damage_reason = DamageReasons.DEADLINE_REACHED
+	if await _do_damage():
+		return
+	
+	_game_state.blocks = []
+	_spawn_blocks_layer()
+	_state_machine.go_state(LAUNCHING_BALL_STATE)
+
+
+# returns true if health expired after damage
+func _do_damage() -> bool:
+	_game_state.health -= 1
+	_state_machine.go_state(WAITING_FOR_DAMAGE_STATE)
+	await get_tree().create_timer(DAMAGE_TIME_AWATING).timeout
+	if _game_state.health <= 0:
+		_on_health_expired()
+		return true
+	return false
+
+
+func _on_health_expired() -> void:
+	(%GameOverScreen as GameOverScreenUIApi).show()
+	(%GameOverScreen as GameOverScreenUIApi).set_score(_game_state.score)
+	get_tree().paused = true
 
 
 func _check_collisions(delta:float) -> void:
@@ -232,94 +327,6 @@ func _check_collisions(delta:float) -> void:
 			_game_state.ball_position.y = 0.0 + _game_state.ball_radius + 4.0
 		elif _game_state.ball_position.y >= GlobalSettings.game_config.playing_area_size.y:
 			_on_ball_falled()
-
-
-func _place_ball_to_launch_position() -> void:
-	const BALL_PLATFORM_GAP : float = 2.0
-	
-	_game_state.ball_position = _game_state.platform_rect.rect.position + \\
-		Vector2(_game_state.platform_rect.rect.size.x*randf(), -_game_state.ball_radius-BALL_PLATFORM_GAP)
-
-
-func _handle_platform_movement(delta:float) -> void:
-	var platform_speed_input : float = Input.get_axis(\"platform_left\", \"platform_right\")
-	
-	_game_state.platform_rect.rect.position.x += _game_state.platform_speed*delta*platform_speed_input
-	if _game_state.platform_rect.rect.end.x > GlobalSettings.game_config.playing_area_size.x:
-		_game_state.platform_rect.rect.position.x = GlobalSettings.game_config.playing_area_size.x-_game_state.platform_rect.rect.size.x
-	elif _game_state.platform_rect.rect.position.x < 0.0:
-		_game_state.platform_rect.rect.position.x = 0.0
-
-
-
-func _check_blocks_deadline() -> bool:
-	for rect:ArcanoidRect in _game_state.blocks:
-		if rect.rect.end.y > GlobalSettings.game_config.blocks_deadline_height:
-			return true
-	
-	return false
-
-
-func _spawn_blocks_layer() -> void:
-	for rect:ArcanoidRect in _game_state.blocks:
-		rect.rect.position.y += GlobalSettings.game_config.block_size.y + GlobalSettings.game_config.block_rows_gap
-	
-	var spawned_columns : Array[int] = []
-	var spawn_count : int = min(_game_state.blocks_spawn_count, GlobalSettings.game_config.block_column_count)
-	
-	for i:int in spawn_count:
-		var column : int = randi()%GlobalSettings.game_config.block_column_count
-		while column in spawned_columns: column = randi()%GlobalSettings.game_config.block_column_count
-		spawned_columns.append(column)
-		var new_block := ArcanoidBlock.new(
-			Rect2(Vector2(GlobalSettings.game_config.block_size.x+GlobalSettings.game_config.blocks_columns_gap, 0.0)*column + \\
-				Vector2(GlobalSettings.game_config.first_row_offset, GlobalSettings.game_config.top_row_gap), GlobalSettings.game_config.block_size), 1)
-		_game_state.blocks.append(new_block)
-
-
-func _on_ball_platform_collision() -> void:
-	if _game_state.new_blocks_spawning:
-		_spawn_blocks_layer()
-	
-	if _check_blocks_deadline():
-		_on_blocks_reached_deadline()
-	_game_state.ball_velocity *= _game_state.speed_factor
-	_game_state.platform_speed *= _game_state.speed_factor
-
-
-func _on_ball_falled() -> void:
-	_damage_reason = DamageReasons.BALL_FALLED
-	if await _do_damage():
-		return
-	
-	_state_machine.go_state(LAUNCHING_BALL_STATE)
-
-
-func _on_blocks_reached_deadline() -> void:
-	_damage_reason = DamageReasons.DEADLINE_REACHED
-	if await _do_damage():
-		return
-	
-	_game_state.blocks = []
-	_spawn_blocks_layer()
-	_state_machine.go_state(LAUNCHING_BALL_STATE)
-
-
-# returns true if health expired after damage
-func _do_damage() -> bool:
-	_game_state.health -= 1
-	_state_machine.go_state(WAITING_FOR_DAMAGE_STATE)
-	await get_tree().create_timer(DAMAGE_TIME_AWATING).timeout
-	if _game_state.health <= 0:
-		_on_health_expired()
-		return true
-	return false
-
-
-func _on_health_expired() -> void:
-	(%GameOverScreen as GameOverScreenUIApi).show()
-	(%GameOverScreen as GameOverScreenUIApi).set_score(_game_state.score)
-	get_tree().paused = true
 "
 
 [sub_resource type="GDScript" id="GDScript_hy8dd"]
