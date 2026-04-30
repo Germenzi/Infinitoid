@@ -347,12 +347,6 @@ func _on_in_game_menu_new_scale_setted(game_scale: float) -> void:
 	GlobalSettings.game_scale = game_scale
 
 
-func _input(event: InputEvent) -> void:
-	if event.is_action_pressed(\"pasue_game\"):
-		get_tree().paused = not get_tree().paused
-		(%InGameMenu as Control).visible = not (%InGameMenu as Control).visible
-
-
 func _on_in_game_menu_main_menu_button_pressed() -> void:
 	get_tree().paused = false
 	get_tree().change_scene_to_file(ScenesNamespace.MAIN_MENU_SCENE_PATH)

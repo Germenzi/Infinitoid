@@ -6,6 +6,7 @@
 script = ExtResource("1_ihug8")
 playing_area_size = Vector2(500, 700)
 initial_ball_radius = 7.0
+ball_draw_width = 4.0
 initial_platform_size = Vector2(80, 15)
 platform_height = 10.0
 block_size = Vector2(40, 20)
