@@ -3,7 +3,6 @@
 [ext_resource type="Theme" uid="uid://dmce53ilrrlem" path="res://main-theme.tres" id="2_665qb"]
 [ext_resource type="Script" uid="uid://c2xkfwv7iin1c" path="res://scripts/GameState.gd" id="3_6rb05"]
 [ext_resource type="PackedScene" uid="uid://6folc8h7iqa7" path="res://scenes/game_over_screen.tscn" id="4_47ygy"]
-[ext_resource type="PackedScene" uid="uid://b1mwgw0sjehek" path="res://scenes/in_game_menu.tscn" id="5_6e5sj"]
 
 [sub_resource type="GDScript" id="GDScript_0ixw8"]
 resource_name = "main"
@@ -310,9 +309,7 @@ func _do_damage() -> bool:
 
 
 func _on_health_expired() -> void:
-	(%Screens as TabContainer).current_tab = \\
-		(%Screens as TabContainer).get_tab_idx_from_control(%GameOverScreen)
-	(%Screens as Control).show()
+	(%GameOverScreen as GameOverScreenUIApi).show()
 	(%GameOverScreen as GameOverScreenUIApi).set_score(_game_state.score)
 	get_tree().paused = true
 "
@@ -434,34 +431,14 @@ theme_override_font_sizes/font_size = 32
 text = "Score"
 script = SubResource("GDScript_4yrex")
 
-[node name="Screens" type="TabContainer" parent="GUI" unique_id=1382445520]
+[node name="GameOverScreen" parent="GUI" unique_id=1086023770 instance=ExtResource("4_47ygy")]
 unique_name_in_owner = true
-process_mode = 3
-visible = false
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-current_tab = 0
-tabs_visible = false
-
-[node name="GameOverScreen" parent="GUI/Screens" unique_id=1086023770 instance=ExtResource("4_47ygy")]
-unique_name_in_owner = true
-layout_mode = 2
-metadata/_tab_index = 0
-
-[node name="InGameMenu" parent="GUI" unique_id=790170330 instance=ExtResource("5_6e5sj")]
-unique_name_in_owner = true
-process_mode = 3
 visible = false
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=2092726851]
 environment = SubResource("Environment_a6df3")
 
 [connection signal="draw" from="Drawer" to="GameController" method="_on_drawer_draw"]
-[connection signal="main_menu_button_pressed" from="GUI/Screens/GameOverScreen" to="GUI" method="_on_game_over_screen_main_menu_button_pressed"]
-[connection signal="quit_game_button_pressed" from="GUI/Screens/GameOverScreen" to="GUI" method="_on_game_over_screen_quit_game_button_pressed"]
-[connection signal="restart_button_pressed" from="GUI/Screens/GameOverScreen" to="GUI" method="_on_game_over_screen_restart_button_pressed"]
-[connection signal="main_menu_button_pressed" from="GUI/InGameMenu" to="GUI" method="_on_in_game_menu_main_menu_button_pressed"]
-[connection signal="new_scale_setted" from="GUI/InGameMenu" to="GUI" method="_on_in_game_menu_new_scale_setted"]
+[connection signal="main_menu_button_pressed" from="GUI/GameOverScreen" to="GUI" method="_on_game_over_screen_main_menu_button_pressed"]
+[connection signal="quit_game_button_pressed" from="GUI/GameOverScreen" to="GUI" method="_on_game_over_screen_quit_game_button_pressed"]
+[connection signal="restart_button_pressed" from="GUI/GameOverScreen" to="GUI" method="_on_game_over_screen_restart_button_pressed"]
