@@ -7,14 +7,9 @@ resource_name = "main"
 script/source = "extends Control
 
 signal play_infinite_button_pressed
-signal quit_game_button_pressed
 
 func _on_play_button_pressed() -> void:
 	play_infinite_button_pressed.emit()
-
-
-func _on_quit_game_button_pressed() -> void:
-	quit_game_button_pressed.emit()
 "
 
 [node name="MainMenuUI" type="Control" unique_id=123788492]
@@ -60,10 +55,4 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 50
 text = " Play "
 
-[node name="QuitGameButton" type="Button" parent="VBoxContainer" unique_id=2104786063]
-layout_mode = 2
-theme_override_font_sizes/font_size = 50
-text = "  Quit game  "
-
 [connection signal="pressed" from="VBoxContainer/PlayButton" to="." method="_on_play_button_pressed"]
-[connection signal="pressed" from="VBoxContainer/QuitGameButton" to="." method="_on_quit_game_button_pressed"]

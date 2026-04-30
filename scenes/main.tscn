@@ -7,10 +7,6 @@ resource_name = "main"
 script/source = "extends Node
 
 
-func _on_main_menu_ui_quit_game_button_pressed() -> void:
-	get_tree().quit()
-
-
 func _on_main_menu_ui_play_infinite_button_pressed() -> void:
 	get_tree().change_scene_to_file(ScenesNamespace.GAME_SCENE_PATH)
 "
@@ -22,4 +18,3 @@ script = SubResource("GDScript_o8j6b")
 mouse_filter = 1
 
 [connection signal="play_infinite_button_pressed" from="MainMenuUI" to="." method="_on_main_menu_ui_play_infinite_button_pressed"]
-[connection signal="quit_game_button_pressed" from="MainMenuUI" to="." method="_on_main_menu_ui_quit_game_button_pressed"]
