@@ -66,7 +66,6 @@ func set_window_scale(scale_factor:float) -> void:
 
 
 func _on_viewport_size_changed() -> void:
-	var old_scale_factor : float = scale.x
 	set_window_scale(1.0)
 	
 	@warning_ignore(\"integer_division\")
@@ -75,7 +74,10 @@ func _on_viewport_size_changed() -> void:
 	
 	var diff : Vector2 = viewport_center - playing_area_center
 	position += diff
-	set_window_scale(old_scale_factor)
+	
+	var available_height : float = max(1.0, get_tree().root.size.y - 40.0)
+	var factor : float = available_height /  GlobalSettings.game_config.playing_area_size.y
+	set_window_scale(factor)
 "
 
 [sub_resource type="GDScript" id="GDScript_ypwq7"]
