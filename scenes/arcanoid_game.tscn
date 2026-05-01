@@ -84,9 +84,13 @@ func _on_viewport_size_changed() -> void:
 	var diff : Vector2 = viewport_center - playing_area_center
 	position += diff
 	
-	var available_height : float = max(1.0, get_tree().root.size.y - 60.0)
-	var factor : float = available_height /  GlobalSettings.game_config.playing_area_size.y
-	set_window_scale(factor)
+	var available_height : float = get_tree().root.size.y - 60.0
+	var height_factor : float = available_height /  GlobalSettings.game_config.playing_area_size.y
+	
+	var available_width : float = get_tree().root.size.x - 40.0
+	var width_factor : float = available_width / GlobalSettings.game_config.playing_area_size.x
+	
+	set_window_scale(min(height_factor, width_factor))
 "
 
 [sub_resource type="GDScript" id="GDScript_ypwq7"]

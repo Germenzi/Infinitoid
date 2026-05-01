@@ -1,6 +1,8 @@
 [gd_scene format=3 uid="uid://b1xl420g0lc32"]
 
 [ext_resource type="PackedScene" uid="uid://cuuhm46xdebyh" path="res://scenes/main_menu_ui.tscn" id="1_l2h6o"]
+[ext_resource type="Script" uid="uid://dqbux4m7nsqtc" path="res://stars_journey.gd" id="2_sugp2"]
+[ext_resource type="Texture2D" uid="uid://dkaydg81577ks" path="res://circle-big-alpha.png" id="3_jyhfs"]
 
 [sub_resource type="GDScript" id="GDScript_o8j6b"]
 resource_name = "main"
@@ -11,10 +13,95 @@ func _on_main_menu_ui_play_infinite_button_pressed() -> void:
 	get_tree().change_scene_to_file(ScenesNamespace.GAME_SCENE_PATH)
 "
 
+[sub_resource type="GDScript" id="GDScript_o5qli"]
+resource_name = "dfhgkdfjg"
+script/source = "extends Control
+
+
+@export
+var ball_count : int = 1
+
+@export
+var time_scale : float = 1.0
+
+var _time : float = 0.0
+
+
+@warning_ignore(\"unused_parameter\")
+func _process(delta: float) -> void:
+	_time += delta * time_scale
+	queue_redraw()
+
+
+func _draw() -> void:
+	var center : Vector2 = size / 2
+	
+	var phase_delta : float = 2 * PI / ball_count
+	
+	for i:int in range(ball_count):
+		var pos : Vector2 = center + Vector2(size.x * cos(_time + phase_delta * i) / 2, 
+			sin(2 * _time + phase_delta * i) * size.x / 5)
+		draw_circle(pos, 7.0, Color.GREEN)
+"
+
+[sub_resource type="Environment" id="Environment_o5qli"]
+background_mode = 3
+glow_enabled = true
+glow_levels/1 = 5.99
+glow_levels/2 = 2.71
+glow_levels/3 = 2.22
+glow_normalized = true
+glow_intensity = 1.75
+glow_strength = 0.64
+glow_bloom = 0.39
+glow_blend_mode = 0
+
 [node name="Main" type="Node" unique_id=556780036]
 script = SubResource("GDScript_o8j6b")
 
+[node name="MarginContainer" type="MarginContainer" parent="." unique_id=979415140]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 50
+theme_override_constants/margin_top = 50
+theme_override_constants/margin_right = 50
+theme_override_constants/margin_bottom = 50
+
+[node name="InfiniteBall" type="Control" parent="MarginContainer" unique_id=1372266985]
+layout_mode = 2
+script = SubResource("GDScript_o5qli")
+ball_count = 2
+time_scale = 1.2
+
 [node name="MainMenuUI" parent="." unique_id=858781240 instance=ExtResource("1_l2h6o")]
 mouse_filter = 1
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=205694302]
+environment = SubResource("Environment_o5qli")
+
+[node name="StarsBG" type="CanvasLayer" parent="." unique_id=1242913213]
+layer = -1
+
+[node name="StarsJourneyBackground" type="Control" parent="StarsBG" unique_id=2123105668]
+self_modulate = Color(1, 1, 1, 0.5803922)
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("2_sugp2")
+star_count = 300
+star_size = 200.0
+texture = ExtResource("3_jyhfs")
+viewer_nearing_factor = 1.0
+star_spawn_distance = 200.0
+flying_speed_factor = 5.0
+star_min_radius_factor = 6.0
+star_max_radius_factor = 150.0
+star_radius_distribution_power = 0.5
 
 [connection signal="play_infinite_button_pressed" from="MainMenuUI" to="." method="_on_main_menu_ui_play_infinite_button_pressed"]
