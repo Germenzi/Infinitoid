@@ -21,6 +21,7 @@ script/source = "extends Node
 func _ready() -> void:
 	(%GameState as GameState).load_level_config(
 		load(LevelsNamespace.INFINITE_LEVEL_CONFIG_PATH) as LevelConfig)
+	YandexSDK.init_game()
 "
 
 [sub_resource type="GDScript" id="GDScript_vuba5"]
@@ -131,6 +132,9 @@ func _ready() -> void:
 	
 	_place_ball_to_launch_position()
 	_state_machine.go_state(LAUNCHING_BALL_STATE)
+	
+	YandexSDK.interstitial_ad.connect(func(result):
+		print(\"Ad: <%s>\" % result))
 
 
 func _on_state_launching_ball() -> void:
@@ -279,6 +283,9 @@ func _on_health_expired() -> void:
 	(%GameOverScreen as GameOverScreenUIApi).set_score(_game_state.score)
 	(%GameoverSound as AudioStreamPlayer).play()
 	get_tree().paused = true
+	GlobalSettings.game_over_count += 1
+	if GlobalSettings.game_over_count % 2 == 0:
+		YandexSDK.show_interstitial_ad()
 
 
 func _check_collisions(delta:float) -> void:

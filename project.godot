@@ -24,6 +24,7 @@ config/icon="res://icon.svg"
 
 GlobalSettings="*res://scripts/GlobalSettingsAutoload.gd"
 Bgmusic="uid://dm2ganu3to5yr"
+YandexSDK="*uid://c7g8fgk0kvs3v"
 
 [debug]
 
@@ -39,7 +40,7 @@ window/size/viewport_height=720
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/script-ide/plugin.cfg")
+enabled=PackedStringArray("res://addons/godot-yandex-games-sdk/plugin.cfg", "res://addons/script-ide/plugin.cfg")
 
 [input]
 
