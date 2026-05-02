@@ -118,13 +118,7 @@ enum DamageReasons {
 var _damage_reason : DamageReasons
 var _state_machine : StateMachine = StateMachine.new()
 
-var _in_ad : bool = false
-
 func _ready() -> void:
-	WebBus.ad_closed.connect(_on_ad_closed)
-	WebBus.ad_error.connect(_on_ad_error)
-	WebBus.ad_started.connect(_on_ad_started)
-	
 	_state_machine.handle_state(LAUNCHING_BALL_STATE, _on_state_launching_ball)
 	_state_machine.handle_state(CONTROLLING_BALL_STATE, _on_state_controlling_ball)
 	_state_machine.handle_state(WAITING_FOR_DAMAGE_STATE, _on_state_waiting_for_damage)
@@ -283,8 +277,7 @@ func _on_health_expired() -> void:
 	(%GameOverScreen as GameOverScreenUIApi).show()
 	(%GameOverScreen as GameOverScreenUIApi).set_score(_game_state.score)
 	(%GameoverSound as AudioStreamPlayer).play()
-	WebBus.show_ad()
-	get_tree().paused = true
+	%AdController.show_ad()
 
 
 func _check_collisions(delta:float) -> void:
@@ -366,31 +359,6 @@ func _check_collisions(delta:float) -> void:
 			_game_state.ball_position.y = 0.0 + _game_state.ball_radius + 4.0
 		elif _game_state.ball_position.y >= GlobalSettings.game_config.playing_area_size.y:
 			_on_ball_falled()
-
-
-func _on_ad_started() -> void:
-	_in_ad = true
-	AudioServer.set_bus_mute(0, true)
-
-
-func _on_ad_closed() -> void:
-	_in_ad = false
-	AudioServer.set_bus_mute(0, false)
-
-
-func _on_ad_error() -> void:
-	_in_ad = false
-	AudioServer.set_bus_mute(0, false)
-
-
-func _notification(what: int) -> void:
-	if not _in_ad:
-		match what:
-			NOTIFICATION_WM_WINDOW_FOCUS_IN:
-				AudioServer.set_bus_mute(0, false)
-			
-			NOTIFICATION_WM_WINDOW_FOCUS_OUT:
-				AudioServer.set_bus_mute(0, true)
 "
 
 [sub_resource type="GDScript" id="GDScript_hy8dd"]
@@ -399,22 +367,11 @@ script/source = "extends CanvasLayer
 
 
 func _on_game_over_screen_main_menu_button_pressed() -> void:
-	get_tree().paused = false
 	get_tree().change_scene_to_file(ScenesNamespace.MAIN_MENU_SCENE_PATH)
 
 
 func _on_game_over_screen_restart_button_pressed() -> void:
-	get_tree().paused = false
 	get_tree().reload_current_scene()
-
-
-func _on_in_game_menu_new_scale_setted(game_scale: float) -> void:
-	GlobalSettings.game_scale = game_scale
-
-
-func _on_in_game_menu_main_menu_button_pressed() -> void:
-	get_tree().paused = false
-	get_tree().change_scene_to_file(ScenesNamespace.MAIN_MENU_SCENE_PATH)
 "
 
 [sub_resource type="GDScript" id="GDScript_fgexy"]
@@ -451,6 +408,45 @@ glow_intensity = 1.75
 glow_strength = 0.64
 glow_bloom = 0.39
 glow_blend_mode = 0
+
+[sub_resource type="GDScript" id="GDScript_tq3ku"]
+resource_name = "ad_controller"
+script/source = "extends Node
+
+var in_ad : bool = false
+
+func _ready() -> void:
+	WebBus.ad_closed.connect(_on_ad_closed)
+	WebBus.ad_error.connect(_on_ad_error)
+	WebBus.ad_started.connect(_on_ad_started)
+	
+
+func show_ad() -> void:
+	WebBus.show_ad()
+
+
+func _on_ad_started() -> void:
+	in_ad = true
+	AudioServer.set_bus_mute(0, true)
+
+
+func _on_ad_closed() -> void:
+	in_ad = false
+
+
+func _on_ad_error() -> void:
+	in_ad = false
+
+
+func _notification(what: int) -> void:
+	if not in_ad:
+		match what:
+			NOTIFICATION_WM_WINDOW_FOCUS_IN:
+				AudioServer.set_bus_mute(0, false)
+			
+			NOTIFICATION_WM_WINDOW_FOCUS_OUT:
+				AudioServer.set_bus_mute(0, true)
+"
 
 [node name="ArcanoidGame" type="Node" unique_id=2092911008]
 script = SubResource("GDScript_0ixw8")
@@ -626,6 +622,11 @@ flying_speed_factor = 5.0
 star_min_radius_factor = 6.0
 star_max_radius_factor = 150.0
 star_radius_distribution_power = 0.5
+
+[node name="AdController" type="Node" parent="." unique_id=227738931]
+unique_name_in_owner = true
+process_mode = 3
+script = SubResource("GDScript_tq3ku")
 
 [connection signal="draw" from="Drawer" to="GameController" method="_on_drawer_draw"]
 [connection signal="main_menu_button_pressed" from="GUI/GameOverScreen" to="GUI" method="_on_game_over_screen_main_menu_button_pressed"]

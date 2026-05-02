@@ -8,14 +8,17 @@
 resource_name = "main"
 script/source = "extends Node
 
+static var showed : bool = false
+
 var _in_ad : bool = false
 
 func _ready() -> void:
 	WebBus.ad_closed.connect(_on_ad_closed)
 	WebBus.ad_error.connect(_on_ad_error)
 	WebBus.ad_started.connect(_on_ad_started)
-	
-	WebBus.show_ad()
+	if not showed:
+		WebBus.show_ad()
+		showed = true
 
 func _on_main_menu_ui_play_infinite_button_pressed() -> void:
 	get_tree().change_scene_to_file(ScenesNamespace.GAME_SCENE_PATH)
