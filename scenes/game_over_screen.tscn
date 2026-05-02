@@ -19,7 +19,7 @@ func _on_main_menu_pressed() -> void:
 
 
 func _do_set_score(score:int) -> void:
-	(%ScoreLabel as Label).text = \"Score: %d\" % score
+	(%ScoreLabel as Label).text = \"%s: %d\" % [tr(\"SCORE\"), score]
 "
 
 [sub_resource type="LabelSettings" id="LabelSettings_gp6l6"]
@@ -62,26 +62,26 @@ alignment = 1
 
 [node name="GameOverLabel" type="Label" parent="VBoxContainer" unique_id=1959690473]
 layout_mode = 2
-text = "Game over"
+text = "GAME_OVER_TEXT"
 label_settings = SubResource("LabelSettings_gp6l6")
 horizontal_alignment = 1
 
 [node name="ScoreLabel" type="Label" parent="VBoxContainer" unique_id=211574010]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Score: "
+text = "SCORE: "
 label_settings = SubResource("LabelSettings_f10qe")
 horizontal_alignment = 1
 
 [node name="RestartButton" type="Button" parent="VBoxContainer" unique_id=2135442268]
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
-text = "Restart"
+text = "RESTART_BUTTON_TEXT"
 
 [node name="MainMenuButton" type="Button" parent="VBoxContainer" unique_id=1694204083]
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
-text = "Main menu"
+text = "MAIN_MENU_BUTTON_TEXT"
 
 [connection signal="pressed" from="VBoxContainer/RestartButton" to="." method="_on_restart_button_pressed"]
 [connection signal="pressed" from="VBoxContainer/MainMenuButton" to="." method="_on_main_menu_pressed"]

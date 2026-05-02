@@ -119,7 +119,13 @@ enum DamageReasons {
 var _damage_reason : DamageReasons
 var _state_machine : StateMachine = StateMachine.new()
 
+var _in_ad : bool = false
+
 func _ready() -> void:
+	WebBus.ad_closed.connect(_on_ad_closed)
+	WebBus.ad_error.connect(_on_ad_error)
+	WebBus.ad_started.connect(_on_ad_started)
+	
 	_state_machine.handle_state(LAUNCHING_BALL_STATE, _on_state_launching_ball)
 	_state_machine.handle_state(CONTROLLING_BALL_STATE, _on_state_controlling_ball)
 	_state_machine.handle_state(WAITING_FOR_DAMAGE_STATE, _on_state_waiting_for_damage)
@@ -278,6 +284,8 @@ func _on_health_expired() -> void:
 	(%GameOverScreen as GameOverScreenUIApi).show()
 	(%GameOverScreen as GameOverScreenUIApi).set_score(_game_state.score)
 	(%GameoverSound as AudioStreamPlayer).play()
+	GlobalSettings.games_played += 1
+	WebBus.show_ad()
 	get_tree().paused = true
 
 
@@ -360,6 +368,31 @@ func _check_collisions(delta:float) -> void:
 			_game_state.ball_position.y = 0.0 + _game_state.ball_radius + 4.0
 		elif _game_state.ball_position.y >= GlobalSettings.game_config.playing_area_size.y:
 			_on_ball_falled()
+
+
+func _on_ad_started() -> void:
+	_in_ad = true
+	AudioServer.set_bus_mute(0, true)
+
+
+func _on_ad_closed() -> void:
+	_in_ad = false
+	AudioServer.set_bus_mute(0, false)
+
+
+func _on_ad_error() -> void:
+	_in_ad = false
+	AudioServer.set_bus_mute(0, false)
+
+
+func _notification(what: int) -> void:
+	if not _in_ad:
+		match what:
+			NOTIFICATION_WM_WINDOW_FOCUS_IN:
+				AudioServer.set_bus_mute(0, false)
+			
+			NOTIFICATION_WM_WINDOW_FOCUS_OUT:
+				AudioServer.set_bus_mute(0, true)
 "
 
 [sub_resource type="GDScript" id="GDScript_hy8dd"]
@@ -394,7 +427,7 @@ script/source = "extends Label
 var _game_state : GameState = %GameState
 
 func _process(delta: float) -> void:
-	text = \"Health: %d/%d\" % [_game_state.health, GlobalSettings.game_config.maximum_health]
+	text = \"%s: %d/%d\" % [tr(\"HEALTH\"), _game_state.health, GlobalSettings.game_config.maximum_health]
 "
 
 [sub_resource type="GDScript" id="GDScript_4yrex"]
@@ -404,8 +437,9 @@ script/source = "extends Label
 @onready
 var _game_state : GameState = %GameState
 
+@warning_ignore(\"unused_parameter\")
 func _process(delta: float) -> void:
-	text = \"Score: %d\" % _game_state.score
+	text = \"%s: %d\" % [tr(\"SCORE\"), _game_state.score]
 "
 
 [sub_resource type="Environment" id="Environment_a6df3"]
@@ -481,7 +515,7 @@ offset_bottom = 19.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_font_sizes/font_size = 32
-text = "Press Space to launch ball"
+text = "LAUNCH_BALL_HINT"
 horizontal_alignment = 1
 vertical_alignment = 1
 autowrap_mode = 2
@@ -522,7 +556,7 @@ texture = ExtResource("3_s7i4b")
 [node name="Label" type="Label" parent="GUI/HUD/MarginContainer/LeftHint" unique_id=2111555005]
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
-text = "\"Left\"/\"A\""
+text = "←, A"
 
 [node name="RightHint" type="HBoxContainer" parent="GUI/HUD/MarginContainer" unique_id=1247739702]
 unique_name_in_owner = true
@@ -534,7 +568,7 @@ theme_override_constants/separation = -20
 [node name="Label" type="Label" parent="GUI/HUD/MarginContainer/RightHint" unique_id=2134420606]
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
-text = "\"Right\"/\"D\""
+text = "→, D"
 
 [node name="Arrow" type="TextureRect" parent="GUI/HUD/MarginContainer/RightHint" unique_id=1002780080]
 layout_mode = 2

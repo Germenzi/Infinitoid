@@ -40,7 +40,7 @@ layout_mode = 2
 
 [node name="WelcomeLabel" type="Label" parent="VBoxContainer/VBoxContainer" unique_id=1668702574]
 layout_mode = 2
-text = "Welcome to"
+text = "WELCOME_TEXT"
 
 [node name="InfinitoidLabel" type="Label" parent="VBoxContainer/VBoxContainer" unique_id=820869129]
 layout_mode = 2
@@ -53,6 +53,6 @@ horizontal_alignment = 1
 [node name="PlayButton" type="Button" parent="VBoxContainer" unique_id=1613070114]
 layout_mode = 2
 theme_override_font_sizes/font_size = 50
-text = " Play "
+text = "PLAY_BUTTON_TEXT"
 
 [connection signal="pressed" from="VBoxContainer/PlayButton" to="." method="_on_play_button_pressed"]
