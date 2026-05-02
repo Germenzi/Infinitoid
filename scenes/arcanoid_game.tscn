@@ -426,7 +426,7 @@ script/source = "extends Label
 var _game_state : GameState = %GameState
 
 func _process(delta: float) -> void:
-	text = \"%s: %d/%d\" % [tr(\"HEALTH\"), _game_state.health, GlobalSettings.game_config.maximum_health]
+	text = \"%s: %d/%d  \" % [tr(\"HEALTH\"), _game_state.health, GlobalSettings.game_config.maximum_health]
 "
 
 [sub_resource type="GDScript" id="GDScript_4yrex"]
@@ -438,7 +438,7 @@ var _game_state : GameState = %GameState
 
 @warning_ignore(\"unused_parameter\")
 func _process(delta: float) -> void:
-	text = \"%s: %d\" % [tr(\"SCORE\"), _game_state.score]
+	text = \"  %s: %d\" % [tr(\"SCORE\"), _game_state.score]
 "
 
 [sub_resource type="Environment" id="Environment_a6df3"]
