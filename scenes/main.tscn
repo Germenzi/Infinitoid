@@ -9,9 +9,6 @@ resource_name = "main"
 script/source = "extends Node
 
 
-func _ready() -> void:
-	TranslationServer.set_locale(\"ru\")
-
 
 func _on_main_menu_ui_play_infinite_button_pressed() -> void:
 	get_tree().change_scene_to_file(ScenesNamespace.GAME_SCENE_PATH)

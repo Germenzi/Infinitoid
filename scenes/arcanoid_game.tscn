@@ -2,7 +2,6 @@
 
 [ext_resource type="Theme" uid="uid://dmce53ilrrlem" path="res://main-theme.tres" id="2_665qb"]
 [ext_resource type="Script" uid="uid://c2xkfwv7iin1c" path="res://scripts/GameState.gd" id="3_6rb05"]
-[ext_resource type="Texture2D" uid="uid://bofaprp8v1um2" path="res://arrow-left.png" id="3_s7i4b"]
 [ext_resource type="PackedScene" uid="uid://6folc8h7iqa7" path="res://scenes/game_over_screen.tscn" id="4_47ygy"]
 [ext_resource type="AudioStream" uid="uid://g7n3m1gf8n4j" path="res://blockhit.wav" id="5_nj15i"]
 [ext_resource type="AudioStream" uid="uid://comybhvivoypm" path="res://platformbounce.wav" id="6_o432w"]
@@ -549,14 +548,10 @@ size_flags_horizontal = 0
 size_flags_vertical = 8
 theme_override_constants/separation = -20
 
-[node name="Arrow" type="TextureRect" parent="GUI/HUD/MarginContainer/LeftHint" unique_id=48933926]
-layout_mode = 2
-texture = ExtResource("3_s7i4b")
-
 [node name="Label" type="Label" parent="GUI/HUD/MarginContainer/LeftHint" unique_id=2111555005]
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
-text = "←, A"
+text = "<-, A"
 
 [node name="RightHint" type="HBoxContainer" parent="GUI/HUD/MarginContainer" unique_id=1247739702]
 unique_name_in_owner = true
@@ -568,12 +563,7 @@ theme_override_constants/separation = -20
 [node name="Label" type="Label" parent="GUI/HUD/MarginContainer/RightHint" unique_id=2134420606]
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
-text = "→, D"
-
-[node name="Arrow" type="TextureRect" parent="GUI/HUD/MarginContainer/RightHint" unique_id=1002780080]
-layout_mode = 2
-texture = ExtResource("3_s7i4b")
-flip_h = true
+text = "->, D"
 
 [node name="GameOverScreen" parent="GUI" unique_id=1086023770 instance=ExtResource("4_47ygy")]
 unique_name_in_owner = true

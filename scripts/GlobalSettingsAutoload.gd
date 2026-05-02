@@ -19,3 +19,4 @@ func _ready() -> void:
 	
 	WebBus.ready()
 	lang = WebBus.get_language()
+	TranslationServer.set_locale(lang)
