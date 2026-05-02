@@ -283,7 +283,6 @@ func _on_health_expired() -> void:
 	(%GameOverScreen as GameOverScreenUIApi).show()
 	(%GameOverScreen as GameOverScreenUIApi).set_score(_game_state.score)
 	(%GameoverSound as AudioStreamPlayer).play()
-	GlobalSettings.games_played += 1
 	WebBus.show_ad()
 	get_tree().paused = true
 

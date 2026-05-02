@@ -20,6 +20,13 @@ func _on_main_menu_pressed() -> void:
 
 func _do_set_score(score:int) -> void:
 	(%ScoreLabel as Label).text = \"%s: %d\" % [tr(\"SCORE\"), score]
+	
+	var best_score : int = (await WebBus.get_data([\"best_score\"])).get(\"best_score\", 0)
+	
+	if score > best_score:
+		WebBus.set_data({\"best_score\": score})
+	
+	(%BestScoreLabel as Label).text = \"%s: %s\" % [tr(\"BEST_SCORE\"), best_score]
 "
 
 [sub_resource type="LabelSettings" id="LabelSettings_gp6l6"]
@@ -70,6 +77,13 @@ horizontal_alignment = 1
 unique_name_in_owner = true
 layout_mode = 2
 text = "SCORE: "
+label_settings = SubResource("LabelSettings_f10qe")
+horizontal_alignment = 1
+
+[node name="BestScoreLabel" type="Label" parent="VBoxContainer" unique_id=228386527]
+unique_name_in_owner = true
+layout_mode = 2
+text = "BEST_SCORE: "
 label_settings = SubResource("LabelSettings_f10qe")
 horizontal_alignment = 1
 
